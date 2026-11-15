@@ -481,7 +481,8 @@ SPDX-License-Identifier: MIT
 
       <ol>
         <li>
-          <p>The new set is initialized to the empty set.</p>
+          <p>The new set is initialized to the empty set and the current
+            seed is initialized to <var>seed</var>.</p>
         </li>
         <li>
           <p><var>stop?</var> is applied to the current seed.  If the
@@ -533,10 +534,14 @@ SPDX-License-Identifier: MIT
         set.  Let <var>n</var> be the number of seeds:</p>
 
       <ol>
-        <li><p>The new set is initialized to the empty set.</p></li>
+        <li>
+          <p>The new set is initialized to the empty set and the
+            current seeds are initialized to the <var>seed</var>
+            arguments.</p>
+        </li>
         <li>
           <p><var>Proc</var> is applied to a procedure
-            <var>terminate</var> and the <var>seed</var>s, in that
+            <var>terminate</var> and the current seeds, in that
             order.  If <var>terminate</var> is invoked in tail context
             on any number of arbitrary values, then the process halts
             and the new set along with those values are returned from
@@ -1393,7 +1398,8 @@ SPDX-License-Identifier: MIT
 
       <ol>
         <li>
-          <p>The new bag is initialized to the empty bag.</p>
+          <p>The new bag is initialized to the empty bag.  The current
+            seed is initialized to <var>seed</var>.</p>
         </li>
         <li>
           <p><var>stop?</var> is applied to the current seed.  If the
@@ -1445,7 +1451,9 @@ SPDX-License-Identifier: MIT
         bag.  Let <var>n</var> be the number of seeds:</p>
 
       <ol>
-        <li><p>The new bag is initialized to the empty bag.</p></li>
+        <li>
+          <p>The new bag is initialized to the empty bag and the current
+            seeds are initialized to the <var>seed</var> arguments.</p>
         <li>
           <p><var>Proc</var> is applied to a procedure
             <var>terminate</var> and the <var>seed</var>s, in that
