@@ -1,0 +1,2704 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<!--
+SPDX-FileCopyrightText: 2026 Wolfgang Corcoran-Mathe, Peter McGoron, and John Cowan
+SPDX-License-Identifier: MIT
+-->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style type="text/css">
+      <!--
+      /* Paragraphs describing restrictions on procedure arguments. */
+      p.arg-restrict { font-size: 80%; }
+
+      /* Quotation attributions. */
+      p.attribution { text-align: right; }
+
+      div.note {
+          border: solid;
+          margin: 1em;
+          padding-left: 1em;
+          padding-right: 1em;
+      }
+
+      /* Procedure specification block. */
+      div.proc-spec {
+          margin-top: 24px;
+          margin-bottom: 24px;
+      }
+
+      /* Specification block for deprecated forms. */
+      div.deprecated-proc-spec {
+          margin-top: 24px;
+          margin-bottom: 24px;
+          background: silver;
+      }
+
+      pre.example { margin-left: 2em; }
+
+      /* Non-English phrases. */
+      span.foreign { font-style: italic; }
+
+      /* A subscript is part of a variable name, but it shouldn't
+         be italicized. */
+      var sub { font-style: normal; }
+      -->
+    </style>
+    <title>SRFI ###: Unordered sets and bags</title>
+    <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
+    <link rel="stylesheet" href="https://srfi.schemers.org/srfi.css" type="text/css">
+    <meta name="viewport" content="width=device-width"></head>
+  <body>
+    <h1><a href="https://srfi.schemers.org/"><img class="srfi-logo" src="https://srfi.schemers.org/srfi-logo.svg" alt="SRFI surfboard logo"></a>###: Unordered sets and bags</h1>
+
+    <p>by Wolfgang Corcoran-Mathe (text and test suite), Peter
+      McGoron (sample implementation), and John Cowan (author of SRFI
+      113)</p>
+
+    <h2 id="status">Status</h2>
+
+    <p style="color: red;">For editor's use only.  Please do not edit this section.</p>
+
+    <p>??? the draft/final/withdrawn status of the SRFI, information on how
+    to subscribe to its mailing list, and important dates in its history.
+    The editor will add this section.</p>
+
+    <h2 id="abstract">Abstract</h2>
+
+    <p>Sets and bags (also known as multisets) are unordered
+      collections that contain only objects of a type given by a
+      collection’s SRFI 128 comparator.  Every element of a set is
+      unique (in the sense of the set’s comparator), but bags can
+      contain any number of duplicate elements.  This SRFI is a
+      revision of SRFI 113 that fixes several infelicities and is more
+      consistent with related SRFIs.</p>
+
+    <h2 id="toc">Table of Contents</h2>
+
+    <ol>
+      <li>
+        <a href="#rationale">Rationale</a>
+        <ol>
+          <li><a href="#element-equality">Element equality</a></li>
+          <li><a href="#new-forms">New forms</a></li>
+          <li><a href="#deprecated-forms">Deprecated &amp; removed
+            SRFI 113 forms</a></li>
+          <li><a href="#why-bother">Why bother?</a></li>
+        </ol>
+      </li>
+      <li>
+        <a href="#specification">Specification</a>
+        <ol>
+          <li><a href="#notation">Notation</a></li>
+          <li><a href="#linear-update">Linear update</a></li>
+          <li><a href="#example-note">Note on examples</a></li>
+          <li>
+            <a href="#set-procedures">Set library</a>
+            <ol>
+              <li><a href="#set-constructors">Constructors</a></li>
+              <li><a href="#set-predicates">Predicates</a></li>
+              <li><a href="#set-accessors">Accessors</a></li>
+              <li><a href="#set-updaters">Updaters</a></li>
+              <li><a href="#the-whole-set">The whole set</a></li>
+              <li><a href="#set-searching">Searching</a></li>
+              <li><a href="#set-mapping-and-folding">Mapping &amp;
+                folding</a></li>
+              <li><a href="#set-copying-and-conversion">Copying &amp;
+                conversion</a></li>
+              <li><a href="#set-comparison">Comparison</a></li>
+              <li><a href="#set-set-theory">Set theory
+                operations</a></li>
+              <li><a href="#set-comparator">Comparator</a></li>
+            </ol>
+          </li>
+          <li>
+            <a href="#bag-procedures">Bag library</a>
+            <ol>
+              <li><a href="#bag-constructors">Constructors</a></li>
+              <li><a href="#bag-predicates">Predicates</a></li>
+              <li><a href="#bag-accessors">Accessors</a></li>
+              <li><a href="#bag-updaters">Updaters</a></li>
+              <li><a href="#the-whole-bag">The whole bag</a></li>
+              <li><a href="#bag-searching">Searching</a></li>
+              <li><a href="#bag-mapping-and-folding">Mapping &amp;
+                folding</a></li>
+              <li><a href="#bag-copying-and-conversion">Copying &amp;
+                conversion</a></li>
+              <li><a href="#bag-comparison">Comparison</a></li>
+              <li><a href="#bag-set-theory">Set theory operations</a></li>
+              <li><a href="#bag-comparator">Comparator</a></li>
+              <li><a href="#additional-bag-procs">Additional bag
+                procedures</a></li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+      <li><a href="#implementation">Implementation</a></li>
+      <li><a href="#acknowledgements">Acknowledgements</a></li>
+      <li><a href="#references">References</a></li>
+      <li><a href="#copyright">Copyright</a></li>
+    </ol>
+
+    <h2 id="issues">Issues</h2>
+
+    <p>Should <a href="#bag-delete-all"><code>bag-delete-all</code></a>
+      and its relatives be renamed?  In the presence of duplicate
+      elements, “all” is ambiguous: it could be understood to refer to
+      the elements of the bag, rather than the elements of the list
+      argument.  The procedure removes at most one element from the
+      bag for each element in its list argument, e.g.</p>
+
+    <pre class="example"><code>(bag-&gt;list
+ (bag-delete-all (bag real-comparator 1 2 2 3) '(2)))
+  ⇒ (1 2 3),</code></pre>
+
+    <p>but its name might lead you to expect</p>
+
+    <pre class="example"><code>(bag-&gt;list
+ (bag-delete-all (bag real-comparator 1 2 2 3) '(2)))
+  ⇒ (1 3).</code></pre>
+
+    <h2 id="rationale">Rationale</h2>
+
+    <p>This SRFI is an elucidated revision of John Cowan’s
+      <a href="#ref-srfi-113">SRFI 113</a>.
+      John’s post-finalization notes to that SRFI have been
+      incorporated, and some underspecified forms and confusing details
+      have been fixed.  Bag procedures specifications are given in
+      full, whereas in SRFI 113 they were mostly defined by analogy.
+      In the process of writing these out, several contradictions were
+      caught and corrected.  I hope that the result of this editorial
+      work is a SRFI that is clearer and more complete than its
+      predecessor.</p>
+
+    <h3 id="element-equality">Element equality</h3>
+
+    <p>A confusing subtlety of SRFI 113 is its occasional use of
+      multiple notions of element equality.
+      Several SRFI 113 procedures
+      refer to elements that are equal in the sense of a set’s (or
+      bag’s) comparator, but different in some other sense, implicitly
+      that of <code>eqv?</code>.  This is strange, considering that a
+      set or bag may use <code>eqv?</code> as its equality predicate.
+      With sets, the layering of multiple kinds of equality leads to
+      tricky implementation details and the presence of forms (like
+      <code>set-replace</code>) that are trivial unless
+      other kinds of equality is relevant.  With bags, the layering
+      is completely unworkable, since there is no guarantee that a bag
+      will store multiple equal elements.</p>
+
+    <p>This SRFI eliminates this problem by using only one notion of
+      element equality: that given by a collection’s
+      comparator.  This simplifies things quite a bit and gives us
+      something much closer to the mathematical concepts of set and
+      multiset.  On the downside, it is a breaking change from SRFI
+      113.</p>
+
+    <h3 id="new-forms">New forms</h3>
+
+    <p>Most of the new names added by this SRFI are aliases of SRFI 113
+      forms whose original names I considered confusing.  The
+      exceptions are
+      <a href="#set-accumulate"><code>set-accumulate</code></a> and
+      <a href="#bag-accumulate"><code>bag-accumulate</code></a>, which
+      are modeled on <code>oset-accumulate</code> from
+      <a href="#ref-srfi-153">SRFI 153</a>, and the <code>pop</code>
+      procedures which are based on <code>hashmap-pop</code> from
+      <a href="#ref-srfi-146">SRFI 146</a>.</p>
+
+    <h3 id="deprecated-forms">Deprecated &amp; removed SRFI 113
+      forms</h3>
+
+    <p>Some forms specified by SRFI 113 are deprecated in this SRFI.
+      A few irreparable forms have been removed.  The following list
+      gives some reasons for these changes.</p>
+
+    <dl>
+      <dt><code>set-member</code></dt>
+      <dt><code>bag-member</code></dt>
+      <dd>
+        <p>These accessors are coherent but fairly useless.  Unless you
+          are using multiple notions of equality (which is itself
+          deprecated usage), they simply return one of their arguments.
+          Which depends on whether the collection argument contains the
+          given element.</p>
+      </dd>
+
+      <dt><code>set-replace</code></dt>
+      <dt><code>set-replace!</code></dt>
+      <dt><code>bag-replace</code> (removed)</dt>
+      <dt><code>bag-replace!</code> (removed)</dt>
+      <dd>
+        <p>Like the <code>member</code> procedures, <code>replace</code>
+          is a trivial
+          operation unless the notion of element equality is being
+          abused.  <code>bag-replace</code> was underspecified; its
+          intended semantics are a mystery, given that it may be
+          impossible to replace a specific “copy” of an element that
+          appears multiple times.  It has been removed.</p>
+      </dd>
+
+      <dt><code>set-search!</code></dt>
+      <dt><code>bag-search!</code></dt>
+      <dd>
+        <p>These complex procedures can be difficult both to implement
+          and to use.  They also iterate over a collection while
+          simultaneously building a copy of it, which can entail
+          unexpected performance costs when only the iteration is
+          needed.</p>
+      </dd>
+
+      <dt><code>list-&gt;set!</code></dt>
+      <dt><code>list-&gt;bag!</code></dt>
+      <dd>
+        <p>These were arguably miscategorized as conversions.
+          I prefer the aliases <code>set-adjoin-all!</code> and
+          <code>bag-adjoin-all!</code>.</p>
+      </dd>
+    </dl>
+
+    <h3 id="why-bother">Why bother?</h3>
+
+    <blockquote>
+      <p>The effective exploitation of his powers of abstraction must be
+        regarded as one of the most vital activities of a competent
+        programmer.</p>
+    </blockquote>
+
+    <p class="attribution">— Edsger W. Dijkstra, <cite>The Humble
+      Programmer</cite> (1972)</p>
+
+    <p>There is some question whether we should use sets or bags in our
+      code instead of more concrete types like hash-tables or binary
+      trees.  My answer is we should, for the same reason we often
+      use <code>map</code> instead of
+      explicit recursion: it makes our intentions clearer.  Sets and bags
+      have clear semantics which may be vaguely familiar to
+      most programmers from set-theory studies.  The meaning of a
+      hash-table in a given program, on the other hand, is not obvious:
+      it may act as a set, bag, or something else entirely.  The
+      only way to know is to read every part of the program that
+      interacts with it.  Judicious use of abstract types like those
+      presented in this SRFI can make programs easier to
+      understand.</p>
+
+
+    <h2 id="specification">Specification</h2>
+
+    <p>The terms <q>must</q>, <q>may</q>, etc., though not capitalized
+      in this document, should be interpreted according to
+      <a href="#ref-rfc-2119">RFC 2119</a>.</p>
+
+    <p><dfn>Sets</dfn> and <dfn>bags</dfn> form new types as if they
+      were created by <code>define-record-type</code> (R<sup>7</sup>RS
+      §5.5).  Values of both types use a specific
+      <a href="#ref-srfi-128">SRFI 128</a> comparator and
+      contain <dfn>elements</dfn> satisfying that comparator’s
+      type-test predicate.  Sets never contains duplicate elements (in
+      the sense of their comparator’s equality predicate).  Bags, on
+      the other hand, may contain duplicates, but they are not required
+      to store each duplicate object explicitly.</p>
+
+    <p>Except as noted, whenever two elements of a set or bag are equal
+      in the sense of the collection’s comparator, <em>those elements
+      are considered to be the same for all purposes</em>.  For
+      example, since the two strings in the following expression are
+      the same according to the new set’s comparator, it is unspecified
+      which one <a href="#set"><code>set</code></a> adds:</p>
+
+    <pre class="example"><code>(let ((comp (make-comparator string? string=? #f string-hash))
+      (s1 (string-copy "hello"))
+      (s2 (string-copy "hello")))
+  (eqv? s1 (car (set-&gt;list (set comp s1 s2)))))
+  ⇒ #t or #f</code></pre>
+
+      <p>The procedures of this SRFI that do not observe this rule are
+      deprecated.</p>
+
+
+    <h3 id="notation">Notation</h3>
+
+    <p>The argument-naming conventions of this document are consistent
+      with those of the R<sup>7</sup>RS.  The following naming
+      conventions also imply type restrictions:</p>
+
+    <dl>
+      <dt><var>bag</var></dt>
+      <dt><var>bag<sub>1</sub></var>, …, <var>bag<sub>j</sub></var>,
+        …</dt>
+      <dd>bag (satisfies <code><a href="#bagp">bag?</a></code>)</dd>
+
+      <dt><var>comparator</var></dt>
+      <dd>SRFI 128 comparator object</dd>
+
+      <dt><var>element</var></dt>
+      <dd>element of a set or bag (satisfies a relevant type-test
+        predicate indicated by context)</dd>
+
+      <dt><var>pred</var></dt>
+      <dd>predicate procedure (see R<sup>7</sup>RS §1.3.5)</dd>
+
+      <dt><var>set</var></dt>
+      <dt><var>set<sub>1</sub></var>, …, <var>set<sub>j</sub></var>,
+        …</dt>
+      <dd>set (satisfies <code><a href="#setp">set?</a></code>)</dd>
+    </dl>
+
+    <p>Many procedures in this SRFI begin with a paragraph describing
+      further argument restrictions.  If any of the requirements of
+      these paragraphs are violated, it is an error.</p>
+
+
+    <h3 id="linear-update">Linear update</h3>
+
+    <p>Like several other SRFIs, this SRFI defines
+      <dfn>linear-update</dfn> procedures, all of whose names end in
+      ‘!’.  These procedures are allowed, but not required, to
+      side-effect one of their arguments in order to construct their
+      results.  (Unlike similarly-named procedures in the Scheme
+      Reports, these forms return meaningful values.)  An implementation
+      may implement linear-update procedures as side-effecting or
+      side-effect-free procedures, depending on what makes the most
+      sense for the underlying representation.</p>
+
+    <p>A linear-update procedure is permitted to mutate one of its
+      arguments, and it is an error to reference that value after the
+      procedure has been invoked on it.  For example, the following is
+      an error:</p>
+
+    <pre class="example"><code>(let* ((s (set (make-equal-comparator) 1 2 3))
+       (s* (set-adjoin! s 4)))
+  (set-&gt;list s))</code></pre>
+
+    <p>This, however, is well-defined:</p>
+
+    <pre class="example"><code>(let ((s (set (make-equal-comparator) 1 2 3)))
+  (set-&gt;list (set-adjoin! s 4)))</code></pre>
+
+    <p>In other words, a user of a linear-update procedures should
+      write in a functional style, but should additionally be sure
+      that there are no “live” references to the value that the
+      procedure is allowed to mutate when the procedure is called.</p>
+
+    <h4 id="lu-discussion">Discussion</h4>
+
+    <p><em>This section is informational.</em></p>
+
+    <p>Linear-update procedures are confusing and there is every
+      reason to believe they will be misused.  The original test suite
+      for SRFI 113, for example, incorrectly uses linear-update
+      forms like
+      <a href="#set-adjoin-bang"><code>set-adjoin!</code></a> as
+      simple mutators.  Despite this, they have been retained in the
+      interest of backward compatibility with SRFI 113 and alignment
+      with the R<sup>7</sup>RS Large project’s decision to preserve linear-update
+      forms in their specifications.</p>
+
+    <p>By encompassing both transient and persistent set
+      implementations, SRFI 113 created a problem for programmers
+      wishing to write efficient portable code.  Should they assume a
+      persistent implementation and use only functional forms (e.g.  <a
+      href="#set-adjoin"><code>set-adjoin</code></a>), or should they
+      use the linear-update alternatives, on the assumption of a
+      transient implementation?  The best answer is to have different
+      interfaces for mutable and immutable collections.  But, stuck with a
+      single interface as we are, a good approach may be to use the
+      linear-update forms exclusively in portable code.
+      Hash-table implementations of sets and bags are very
+      common, and they perform best with linear-update code.  Under a
+      persistent implementation, on the other hand, the linear-update
+      forms will likely be aliases for their functional counterparts,
+      so code using them should incur no extra performance costs.</p>
+
+
+    <h3 id="example-note">Note on examples</h3>
+
+    <p>The examples in this SRFI are non-normative: if an example
+      contradicts the specification text, the text is right.
+      They use comparators (especially <code>real-comparator</code>)
+      defined in <a href="#ref-srfi-162">SRFI 162</a>.</p>
+
+
+    <h3 id="set-procedures">Set library</h3>
+
+    <p>The identifiers in this section are exported by the
+      <code>(srfi ??? set)</code> library.</p>
+
+    <h4 id="set-constructors">Constructors</h4>
+
+    <div class="proc-spec" id="set">
+      <p><code>(set <var>comparator</var> <var>element</var> …)</code> →
+        set</p>
+
+      <p class="arg-restrict">It is an error if
+        any of the <var>element</var> arguments does not satisfy
+        <var>comparator</var>’s type-test predicate.</p>
+
+      <p>Returns a newly allocated set using <var>comparator</var>
+        and containing the given <var>element</var>s.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-&gt;list (set real-comparator 1 2 3))
+  ⇒ (1 3 2) ; order unspecified
+
+(set-&gt;list (set real-comparator 'foo 'foo 'bar))
+  ⇒ (foo bar) ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-unfold">
+      <p><code>(set-unfold <var>stop?</var> <var>mapper</var>
+        <var>successor</var> <var>seed</var>
+        <var>comparator</var>)</code> → set</p>
+
+      <p class="arg-restrict">
+        <var>seed</var> may be any object.  <var>stop?</var> is a
+        predicate taking a single value of <var>seed</var>’s type.
+        <var>mapper</var> and <var>successor</var> are procedures taking
+        a single value of <var>seed</var>’s type and returning a single
+        value.  It is an error if <var>mapper</var> returns a value
+        that does not satisfy <var>comparator</var>’s type-test
+        predicate.</p>
+
+      <p>Returns a newly allocated set using <var>comparator</var>.
+        The elements of this set are generated by the following
+        process:</p>
+
+      <ol>
+        <li>
+          <p>The new set is initialized to the empty set.</p>
+        </li>
+        <li>
+          <p><var>stop?</var> is applied to the current seed.  If the
+            result is true, then the unfolding process halts and the new
+            set is returned.  Otherwise, the process continues.</p>
+        </li>
+        <li>
+          <p>The result of applying <var>mapper</var> to the current
+            seed is added to the set.</p>
+        </li>
+        <li>
+          <p><var>successor</var> is applied to the current seed to
+            produce the next seed.  Unfolding continues with step 2.</p>
+        </li>
+      </ol>
+
+      <p>If <var>stop?</var>, <var>mapper</var>, or <var>successor</var>
+        mutate the values returned by <var>mapper</var>, then
+        <code>set-unfold</code> returns a set whose contents are
+        unspecified.  If multiple returns occur from
+        <code>set-unfold</code>, the values returned by earlier returns
+        are not mutated.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-&gt;list
+ (set-unfold (lambda (i) (= i 4))
+             (lambda (i) (make-string i #\a))
+             (lambda (i) (+ i 1))
+             0
+             string-comparator))
+  ⇒ ("a" "aaa" "aa" "") ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-accumulate">
+      <p><code>(set-accumulate <var>proc</var> <var>comparator</var>
+        <var>seed<sub>1</sub></var> <var>seed<sub>2</sub></var>
+        …)</code> → set</p>
+
+      <p class="arg-restrict">
+        The <var>seed</var>s may be any objects.  <var>proc</var> must
+        accept <var>n</var> arguments, where <var>n</var> is the
+        number of <var>seed</var>s, and return <var>n</var> + 1 values,
+        the first of which must satisfy <var>comparator</var>’s
+        type-test predicate.</p>
+
+      <p>Similar to <a href="#set-unfold"><code>set-unfold</code></a>,
+        except that a single procedure controls the unfolding of a new
+        set.  Let <var>n</var> be the number of seeds:</p>
+
+      <ol>
+        <li><p>The new set is initialized to the empty set.</p></li>
+        <li>
+          <p><var>Proc</var> is applied to a procedure
+            <var>terminate</var> and the <var>seed</var>s, in that
+            order.  If <var>terminate</var> is invoked in tail context
+            on any number of arbitrary values, then the process halts
+            and the new set along with those values are returned from
+            <code>set-accumulate</code>.</p>
+        </li>
+        <li>
+          <p>Otherwise, <var>proc</var> is expected to return
+            <var>n</var> + 1 values: a new set element and <var>n</var>
+            new seeds.  The element is added to the new set and the
+            process continues at step two with the new seeds.</p>
+        </li>
+      </ol>
+
+      <p>It is an error for the number of seeds to vary between steps
+        of the unfolding process.  If <var>proc</var> mutates values
+        returned by earlier invocations of <var>proc</var>, then
+        <code>set-accumulate</code> returns a set whose contents are
+        unspecified.  If multiple returns occur from
+        <code>set-accumulate</code>, the values returned by earlier
+        returns are not mutated.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(let-values (((set sym)
+              (set-accumulate (lambda (terminate i)
+                                (if (&gt; i 3)
+                                    (terminate 'finished)
+                                    (values i (+ i 1))))
+                              (make-real-comparator)
+                              1)))
+  (values (set-&gt;list set) sym))
+  ⇒ (1 2 3)  ; or some permutation thereof
+    finished</code></pre>
+    </div>
+
+    <h4 id="set-predicates">Predicates</h4>
+
+    <div class="proc-spec" id="setp">
+      <p><code>(set? <var>obj</var>)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if <var>obj</var> is a set, and
+        <code>#f</code> otherwise.</p>
+    </div>
+
+    <div class="proc-spec">
+      <p><code>(set-contains? <var>set element</var>)</code> →
+        boolean</p>
+
+      <p>Returns <code>#t</code> if <var>element</var> is a member of
+        <var>set</var> and <code>#f</code> otherwise.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-contains? (set real-comparator 2 4 6) 2) ⇒ #t
+(set-contains? (set real-comparator 1 3 5) 2) ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec">
+      <p><code>(set-empty? <var>set</var>)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if <var>set</var> has no elements and
+        <code>#f</code> otherwise.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-empty? (set real-comparator)) ⇒ #t
+(set-empty? (set real-comparator 1 3 5)) ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec">
+      <p><code>(set-disjoint? <var>set<sub>1</sub></var>
+        <var>set<sub>2</sub></var>)</code> → boolean</p>
+
+      <p class="arg-restrict">It is an error if the comparator
+        of <var>set<sub>1</sub></var> is not the same (in the sense
+        of <code>eqv?</code>) as that of <var>set<sub>2</sub></var>.
+      </p>
+
+      <p>Returns <code>#t</code> if <var>set<sub>1</sub></var> and
+        <var>set<sub>2</sub></var> have no elements in common and
+        <code>#f</code> otherwise.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-disjoint? (set real-comparator 1 3 5)
+               (set real-comparator 2 4 6))
+  ⇒ #t
+
+(set-disjoint? (set real-comparator 1 3 4)
+               (set real-comparator 2 4 6))
+  ⇒ #f</code></pre>
+    </div>
+
+
+    <h4 id="set-accessors">Accessors</h4>
+
+    <div class="deprecated-proc-spec" id="set-member">
+      <p>[Deprecated] <code>(set-member <var>set</var>
+        <var>element</var> <var>default</var>)</code> → obj</p>
+
+      <p class="arg-restrict"><var>Default</var> may be any Scheme
+        object.</p>
+
+      <p>Returns the element of <var>set</var> that is equal (in the
+        sense of <var>set</var>’s comparator) to <var>element</var>.
+        If <var>element</var> is not a member of <var>set</var>,
+        <var>default</var> is returned instead.</p>
+
+      <div class="note">
+        <h5>Note</h5>
+
+        <p><em>This section is informational.</em></p>
+
+        <p>Unless a notion of element equality other than that
+          given by <var>set</var>’s comparator is relevant, this
+          procedure is equivalent to</p>
+
+        <pre><code>(lambda (set element default)
+  (if (set-contains? set element) element default))</code></pre>
+      </div>
+    </div>
+
+    <div class="proc-spec" id="set-element-comparator">
+      <p><code>(set-element-comparator <var>set</var>)</code> →
+        comparator</p>
+
+      <p>Returns the comparator used to compare the elements of
+        <var>set</var>.</p>
+    </div>
+
+
+    <h4 id="set-updaters">Updaters</h4>
+
+    <div class="proc-spec" id="set-adjoin">
+      <p><code>(set-adjoin <var>set</var> <var>element</var> …)</code>
+        → set</p>
+
+      <p>Returns a newly allocated set that uses the same comparator as
+        <var>set</var> and that contains all its elements
+        in addition to the <var>element</var> arguments.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-&gt;list (set-adjoin (set real-comparator 0) 1 2))
+  ⇒ (1 2 0) ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-adjoin-bang">
+      <p><code>(set-adjoin! <var>set</var> <var>element</var> …)</code>
+        → set</p>
+
+      <p>A linear-update variant of
+        <a href="#set-adjoin"><code>set-adjoin</code></a>.  It is
+        allowed, but not required, to mutate <var>set</var> to produce
+        its result.</p>
+    </div>
+
+    <div class="proc-spec" id="set-adjoin-all">
+      <p><code>(set-adjoin-all <var>set</var> <var>list</var>)</code>
+        → set</p>
+
+      <p class="arg-restrict">Every element of <var>list</var> must
+        satisfy <var>set</var>’s comparator’s type-test predicate.</p>
+
+      <p>Returns a newly allocated set that uses the same comparator as
+        <var>set</var> and that contains all its elements
+        in addition to the elements of <var>list</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-&gt;list (set-adjoin-all (set real-comparator 0)
+                           '(0 1 2)))
+  ⇒ (1 2 0) ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-adjoin-all-bang">
+      <p><code>(set-adjoin-all! <var>set</var> <var>list</var>)</code>
+        → set</p>
+
+      <p>A linear-update variant of
+        <a href="#set-adjoin-all"><code>set-adjoin-all</code></a>.  It is
+        allowed, but not required, to mutate <var>set</var> to produce
+        its result.</p>
+    </div>
+
+    <div class="deprecated-proc-spec" id="set-replace">
+      <p>[Deprecated] <code>(set-replace <var>set</var>
+        <var>element</var>)</code> → set</p>
+
+      <p>Returns a newly allocated set that uses the same comparator
+        as <var>set</var> and contains all its elements except as follows:
+        If <var>element</var> is equal (in the sense of <var>set</var>’s
+        comparator) to an existing member of <var>set</var>, then that
+        member is omitted and replaced by <var>element</var>.  If there is
+        no such element in <var>set</var>, then <var>set</var> is returned
+        unchanged.</p>
+
+      <div class="note">
+        <h5>Note</h5>
+
+        <p><em>This section is informational.</em></p>
+
+        <p>Strictly speaking, this procedure does nothing.  It only
+          makes sense to use when some notion of element equality other
+          than that defined by <var>set</var>’s comparator is in
+          play.</p>
+      </div>
+    </div>
+
+    <div class="deprecated-proc-spec" id="set-replace-bang">
+      <p>[Deprecated] <code>(set-replace! <var>set</var>
+        <var>element</var>)</code> → set</p>
+
+      <p>A linear-update variant of
+        <a href="#set-replace"><code>set-replace</code></a>.  It is
+        allowed, but not required, to mutate <var>set</var> to produce
+        its result.</p>
+    </div>
+
+    <div class="proc-spec" id="set-delete">
+      <p><code>(set-delete <var>set</var> <var>element</var> …)</code>
+        → set</p>
+
+      <p>Returns a newly allocated set containing all the elements of
+        <var>set</var> except for any that are equal (in the sense of
+        <var>set</var>’s comparator) to one or more of the
+        <var>element</var>s.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-&gt;list (set-delete (set real-comparator 1 2 3) 2 1))
+  ⇒ (3)
+
+(set-&gt;list (set-delete (set real-comparator 4 6) 2 3))
+  ⇒ (4 6) ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-delete-bang">
+      <p><code>(set-delete! <var>set</var> <var>element</var> …)</code>
+        → set</p>
+
+      <p>A linear-update variant of
+        <a href="#set-delete"><code>set-delete</code></a>.  It is
+        allowed, but not required, to mutate <var>set</var> to produce
+        its result.</p>
+    </div>
+
+    <div class="proc-spec" id="set-delete-all">
+      <p><code>(set-delete-all <var>set</var>
+        <var>list</var>)</code> → set</p>
+
+      <p class="arg-restrict">It is an error if any element of
+        <var>list</var> does not satisfy the type-test predicate of
+        <var>set</var>’s comparator.</p>
+
+      <p>Returns a newly allocated set containing all the elements of
+        <var>set</var> except for any that are equal (in the sense of
+        <var>set</var>’s comparator) to one or more elements of
+        <var>list</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-&gt;list (set-delete-all (set real-comparator 1 2 3)
+                           '(2 1)))
+  ⇒ (3)</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-delete-all-bang">
+      <p><code>(set-delete-all! <var>set</var>
+        <var>list</var>)</code> → set</p>
+
+      <p>A linear-update variant of
+        <a href="#set-delete-all"><code>set-delete-all</code></a>.  It
+        is allowed, but not required, to mutate <var>set</var> to
+        produce its result.</p>
+    </div>
+
+    <div class="deprecated-proc-spec" id="set-search-bang">
+      <p>[Deprecated] <code>(set-search! <var>set</var>
+        <var>element</var> <var>failure</var>
+        <var>success</var>)</code></p>
+
+      <p>The <var>set</var> is searched for <var>element</var>. If it is
+        not found, then the <var>failure</var> procedure is tail-called
+        with two continuation arguments, <var>insert</var> and
+        <var>ignore</var>, and is expected to tail-call one of them.
+        If <var>element</var> is found, then the <var>success</var>
+        procedure is tail-called with the matching element of
+        <var>set</var> and two continuations, <var>update</var> and
+        <var>remove</var>, and is expected to tail-call one of them.</p>
+
+      <p>The effects of the continuations are as follows (where
+        <var>obj</var> is any Scheme object):</p>
+
+      <ul>
+        <li>
+          <p>Invoking <code>(<var>insert</var> <var>obj</var>)</code>
+            causes <var>element</var> to be inserted into
+            <var>set</var>.</p>
+        </li>
+        <li>
+          <p>Invoking <code>(<var>ignore</var> <var>obj</var>)</code>
+            causes <var>set</var> to remain unchanged.</p>
+        </li>
+        <li>
+          <p>Invoking <code>(<var>update</var> <var>new-element</var>
+            <var>obj</var>)</code> causes <var>new-element</var> to
+            be inserted into <var>set</var> in place of
+            <var>element</var>.</p>
+        </li>
+        <li>
+          <p>Invoking <code>(<var>remove</var> <var>obj</var>)</code>
+            causes the matching element of <var>set</var> to be
+            removed from it.</p>
+        </li>
+      </ul>
+
+      <p>In all cases, two values are returned: the possibly updated
+        <var>set</var> and <var>obj</var>.</p>
+    </div>
+
+    <div id="set-pop" class="proc-spec">
+      <p><code>(set-pop <var>set</var> [<var>failure</var>])</code>
+        → obj …</p>
+
+      <p class="arg-restrict">If <var>failure</var> is provided, it
+        must be a procedure accepting zero arguments.  Otherwise, it
+        is an error.</p>
+
+      <p>Chooses an arbitrary element <var>x</var> of <var>set</var>
+        and returns two values: a newly allocated set using the same
+        comparator as <var>set</var> and containing all of its elements
+        except <var>x</var>, and <var>x</var> itself.  If
+        <var>set</var> is empty and <var>failure</var> is provided,
+        then <var>failure</var> is invoked in tail context on zero
+        arguments.  Otherwise, it is an error.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(let-values (((rest x) (set-pop (set real-comparator 1 2 3))))
+  (values (set-&gt;list rest) x))
+  ⇒ (1 3)  ; possibly
+    2</code></pre>
+      </div>
+
+    <div class="proc-spec">
+      <p><code>(set-pop! <var>set</var> [<var>failure</var>])</code>
+        → obj …</p>
+
+      <p>Linear-update variant of
+        <a href="#set-pop"><code>set-pop</code></a> which is allowed,
+        but not required, to mutate <var>set</var> to produce its
+        result.</p>
+    </div>
+
+
+    <h4 id="the-whole-set">The whole set</h4>
+
+    <div class="proc-spec">
+      <p><code>(set-size <var>set</var>)</code> → exact-integer</p>
+
+      <p>Returns the number of elements in <var>set</var>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-size (set real-comparator 1 2)) ⇒ 2
+
+(set-size (set real-comparator)) ⇒ 0</code></pre>
+    </div>
+
+
+    <h4 id="set-searching">Searching</h4>
+
+    <div class="proc-spec" id="set-find">
+      <p><code>(set-find <var>pred</var> <var>set</var>
+        <var>failure</var>)</code> → obj …</p>
+
+      <p>Returns an arbitrarily-chosen element of <var>set</var> that
+        satisfies <var>pred</var>.  If no such element exists, then
+        <var>failure</var> is invoked in tail context on zero
+        arguments.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>
+(set-find even?
+          (set real-comparator 1 2 3 4)
+          (lambda () #f))
+  ⇒ 2  ; or 4
+
+(set-find negative?
+          (set real-comparator 1 2 3 4)
+          (lambda () #f))
+  ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-count">
+      <p><code>(set-count <var>pred</var> <var>set</var>)</code> →
+        exact-integer</p>
+
+      <p>Returns the number of elements of <var>set</var> that satisfy
+        <var>pred</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-count even? (set real-comparator 1 2 3))
+  ⇒ 1</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-anyp">
+      <p><code>(set-any? <var>pred</var> <var>set</var>)</code> →
+        boolean</p>
+
+      <p>Returns <code>#t</code> if any element of <var>set</var>
+        satisfies <var>pred</var>.  Otherwise, returns
+        <code>#f</code>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-any? even? (set real-comparator 1 2 3 4))
+  ⇒ #t
+
+(set-any? negative? (set real-comparator 1 2 3 4))
+  ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-everyp">
+      <p><code>(set-every? <var>pred</var> <var>set</var>)</code> →
+        boolean</p>
+
+      <p>Returns <code>#t</code> if every element of <var>set</var>
+        satisfies <var>pred</var>.  Otherwise, returns
+        <code>#f</code>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-every? integer? (set real-comparator 1 2 3 4))
+  ⇒ #t
+
+(set-every? even? (set real-comparator 1 2 3 4))
+  ⇒ #f</code></pre>
+    </div>
+
+
+    <h3 id="set-mapping-and-folding">Mapping &amp; folding</h3>
+
+    <div class="proc-spec" id="set-map">
+      <p><code>(set-map <var>proc</var> <var>comparator</var>
+        <var>set</var>)</code> → set</p>
+
+      <p class="arg-restrict"><var>Proc</var> must be a procedure
+        accepting one argument, an element of <var>set</var>, and
+        returning one value which must satisfy <var>comparator</var>’s
+        type-test predicate.</p>
+
+      <p>Applies <var>proc</var> to each element of <var>set</var> in
+        an arbitrary order and returns a newly allocated set, created
+        as if by <code>(set <var>comparator</var>)</code>, which
+        contains the results of the applications.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-map symbol-&gt;string
+         string-comparator
+         (set eqv? 'foo 'bar 'baz))
+  ⇒ (set string-comparator "foo" "bar" "baz")
+
+(set-map (lambda (x) (quotient x 2))
+         integer-comparator
+         (set integer-comparator 1 2 3 4 5))
+  ⇒ (set integer-comparator 0 1 2)</code></pre>
+
+    </div>
+
+    <div class="proc-spec" id="set-for-each">
+      <p><code>(set-for-each <var>proc</var> <var>set</var>)</code> →
+        unspecified</p>
+
+      <p class="arg-restrict"><var>Proc</var> must be a procedure
+        accepting one argument, an element of <var>set</var>.</p>
+
+      <p>Applies <var>proc</var> to the elements of <var>set</var> in an
+        arbitrary order, discarding the returned values.  Returns an
+        unspecified result.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(let ((sum 0))
+  (set-for-each (lambda (k) (set! sum (+ sum k)))
+                (set real-comparator 1 2 3 4 5))
+  sum) ⇒ 15</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-fold">
+      <p><code>(set-fold <var>proc</var> <var>nil</var>
+        <var>set</var>)</code> → obj</p>
+
+      <p class="arg-restrict"><var>Proc</var> must be a procedure
+        accepting two arguments and returning a single value.
+        <var>Nil</var> may be any Scheme object.</p>
+
+      <p>Invokes <var>proc</var> on each member of <var>set</var> in an
+        arbitrary order, passing the result of the previous invocation
+        as a second argument.  For the first invocation, <var>nil</var>
+        is used as the second argument.  Returns the result of the last
+        invocation, or <var>nil</var> if <var>proc</var> was not
+        invoked.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-fold cons '() (set real-comparator 1 2 3))
+  ⇒ (2 3 1)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-filter">
+      <p><code>(set-filter <var>pred</var> <var>set</var>)</code> →
+        set</p>
+
+      <p>Returns a newly allocated set with the same comparator as
+        <var>set</var> and containing just the elements of
+        <var>set</var> that satisfy <var>pred</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-&gt;list
+ (set-filter even? (set real-comparator 1 2 3 4)))
+  ⇒ (4 2)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-filter-bang">
+      <p><code>(set-filter! <var>pred</var> <var>set</var>)</code> →
+        set</p>
+
+      <p>A linear-update variant of
+        <a href="#set-filter"><code>set-filter</code></a>.  It
+        is allowed, but not required, to mutate <var>set</var> to
+        produce its result.</p>
+    </div>
+
+    <div class="proc-spec" id="set-remove">
+      <p><code>(set-remove <var>pred</var> <var>set</var>)</code> →
+        set</p>
+
+      <p>Returns a newly allocated set with the same comparator as
+        <var>set</var> and containing just the elements of
+        <var>set</var> that do not satisfy <var>pred</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-&gt;list
+ (set-remove even? (set real-comparator 1 2 3 4)))
+  ⇒ (1 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-remove-bang">
+      <p><code>(set-remove! <var>pred</var> <var>set</var>)</code> →
+        set</p>
+
+      <p>A linear-update variant of
+        <a href="#set-remove"><code>set-remove</code></a>.  It
+        is allowed, but not required, to mutate <var>set</var> to
+        produce its result.</p>
+    </div>
+
+    <div class="proc-spec" id="set-partition">
+      <p><code>(set-partition <var>pred</var>
+        <var>set</var>)</code> → set, set</p>
+
+      <p>Returns two values: a newly allocated set with the same
+        comparator as <var>set</var> that contains just the elements of
+        <var>set</var> that satisfy <var>pred</var>, and another
+        newly allocated set, also with the same comparator, that
+        contains just the elements of <var>set</var> that do not
+        satisfy <var>pred</var>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(let-values (((evens odds)
+              (set-partition even? (set real-comparator 1 2 3 4))))
+  (values (set-&gt;list evens) (set-&gt;list odds)))
+  ⇒ (2 4)  ; order unspecified
+    (1 3)</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-partition-bang">
+      <p><code>(set-partition! <var>pred</var>
+        <var>set</var>)</code> → set, set</p>
+
+      <p>A linear-update variant of
+        <a href="#set-partition"><code>set-partition</code></a>.  It
+        is allowed, but not required, to mutate <var>set</var> to
+        produce its results.</p>
+    </div>
+
+
+    <h4 id="set-copying-and-conversion">Copying &amp; conversion</h4>
+
+    <div class="proc-spec" id="set-copy">
+      <p><code>(set-copy <var>set</var>)</code> → set</p>
+
+      <p>Returns a newly allocated set containing the elements of
+        <var>set</var> and using the same comparator.</p>
+    </div>
+
+    <div class="proc-spec" id="set-to-list">
+      <p><code>(set-&gt;list <var>set</var>)</code> → list</p>
+
+      <p>Returns a newly allocated list containing the members of
+        <var>set</var> in unspecified order.</p>
+    </div>
+
+    <div class="proc-spec" id="list-to-set">
+      <p><code>(list-&gt;set <var>comparator</var>
+        <var>list</var>)</code> → set</p>
+
+      <p class="arg-restrict">Every element of <var>list</var> must
+        satisfy <var>comparator</var>’s type-test predicate.</p>
+
+      <p>Returns a newly allocated set using <var>comparator</var> and
+        containing the elements of <var>list</var>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-&gt;list (list-&gt;set real-comparator '(1 2 3)))
+  ⇒ (1 3 2)  ; order unspecified
+
+(set-&gt;list (list-&gt;set real-comparator '(foo foo bar)))
+  ⇒ (foo bar)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="deprecated-proc-spec" id="list-to-set-bang">
+      <p>[Deprecated] <code>(list-&gt;set! <var>set</var>
+        <var>list</var>)</code> → set</p>
+
+      <p class="arg-restrict">Every element of <var>list</var> must
+        satisfy <var>set</var>’s comparator’s type-test predicate.</p>
+
+      <p>Alias of
+       <a href="#set-adjoin-all-bang"><code>set-adjoin-all!</code></a>.</p>
+    </div>
+
+
+    <h4 id="set-comparison">Comparison</h4>
+
+    <p>It is an error to pass sets to these predicates that do not
+      share the same comparator (in the sense of
+      <code>eqv?</code>).</p>
+
+    <p>None of these predicates produces a total order on
+      sets.  In particular, sets do not have the trichotomy property
+      under <code>set=?</code>, <code>set&lt;?</code>,
+      and <code>set&gt;?</code>: two sets may fail to satisfy all three
+      of these predicates.</p>
+
+    <div class="proc-spec" id="set-equalp">
+      <p><code>(set=? <var>set<sub>1</sub></var>
+        <var>set<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if each <var>set</var> contains the
+        same elements.</p>
+    </div>
+
+    <div class="proc-spec" id="set-lessp">
+      <p><code>(set&lt;? <var>set<sub>1</sub></var>
+        <var>set<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if each <var>set</var> other than the
+        last is a proper subset of the following <var>set</var>, and
+        <code>#f</code> otherwise.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set&lt;? (set real-comparator 4 2)
+       (set real-comparator 2 4 6)
+       (set real-comparator 2 4 6 8))
+  ⇒ #t
+
+(set&lt;? (set real-comparator 4 2)
+       (set real-comparator 4 5 6))
+  ⇒ #f
+
+(set&lt;? (set real-comparator 4 2)) ⇒ #t</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-greaterp">
+      <p><code>(set&gt;? <var>set<sub>1</sub></var>
+        <var>set<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if each <var>set</var> other than the
+        last is a proper superset of the following <var>set</var>, and
+        <code>#f</code> otherwise.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set&gt;? (set real-comparator 2 4 6 8)
+       (set real-comparator 2 4 6)
+       (set real-comparator 4 2))
+  ⇒ #t
+
+(set&gt;? (set real-comparator 4 5 6)
+          (set real-comparator 4 2))
+  ⇒ #f
+
+(set&gt;? (set real-comparator 4 2)) ⇒ #t</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-leqp">
+      <p><code>(set&lt;=? <var>set<sub>1</sub></var>
+        <var>set<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if each <var>set</var> other than the
+        last is a subset of the following <var>set</var>, and
+        <code>#f</code> otherwise.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set&lt;=? (set real-comparator 4 2)
+        (set real-comparator 2 4 6)
+        (set real-comparator 6 2 4))
+  ⇒ #t</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-geqp">
+      <p><code>(set&gt;=? <var>set<sub>1</sub></var>
+        <var>set<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if each <var>set</var> other than the
+        last is a superset of the following <var>set</var>, and
+        <code>#f</code> otherwise.</p>
+
+      <pre class="example"><code>(set&gt;=? (set real-comparator 6 2 4)
+        (set real-comparator 2 4 6)
+        (set real-comparator 4 2))
+  ⇒ #t</code></pre>
+    </div>
+
+    <h4 id="set-set-theory">Set theory operations</h4>
+
+    <div class="proc-spec">
+      <p id="set-union"><code>(set-union
+        <var>set<sub>1</sub></var> <var>set<sub>2</sub></var>
+        …)</code> → set</p>
+      <p id="set-intersection"><code>(set-intersection
+        <var>set<sub>1</sub></var> <var>set<sub>2</sub></var>
+        …)</code> → set</p>
+      <p id="set-difference"><code>(set-difference
+        <var>set<sub>1</sub></var> <var>set<sub>2</sub></var>
+        …)</code> → set</p>
+      <p id="set-xor"><code>(set-xor <var>set<sub>1</sub></var>
+        <var>set<sub>2</sub></var>)</code> → set</p>
+
+      <p class="arg-restrict">The <var>set</var> arguments must all
+        use the same comparator (in the sense of <code>eqv?</code>).
+        Otherwise, it is an error.</p>
+
+      <p>Return a newly allocated set that is the union, intersection,
+        asymmetric difference, or symmetric difference of the
+        <var>sets</var>.  Asymmetric difference is extended to more
+        than two sets by taking the difference between the first set
+        and the union of the others.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(set-&gt;list (set-union (set real-comparator 1 3 5)
+                      (set real-comparator 0 2 4)))
+  ⇒ (0 5 3 2 1 4)  ; order unspecified
+
+(set-&gt;list (set-intersection (set real-comparator 1 3 2)
+                             (set real-comparator 1 7 2)))
+  ⇒ (1 2)  ; order unspecified
+
+(set-&gt;list (set-difference (set real-comparator 1 3 5 7)
+                           (set real-comparator 1 4 6)
+                           (set real-comparator 2 5 9)))
+  ⇒ (7 3)  ; order unspecified
+
+(set-&gt;list (set-xor (set real-comparator 1 4 5 7)
+                    (set real-comparator 1 4 6)))
+  ⇒ (5 7 6)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec">
+      <p id="set-union-bang"><code>(set-union!
+        <var>set<sub>1</sub></var> <var>set<sub>2</sub></var>
+        …)</code> → set</p>
+      <p id="set-intersection-bang"><code>(set-intersection!
+        <var>set<sub>1</sub></var> <var>set<sub>2</sub></var>
+        …)</code> → set</p>
+      <p id="set-difference-bang"><code>(set-difference!
+        <var>set<sub>1</sub></var> <var>set<sub>2</sub></var>
+        …)</code> → set</p>
+      <p id="set-xor-bang"><code>(set-xor! <var>set<sub>1</sub></var>
+        <var>set<sub>2</sub></var>)</code> → set</p>
+
+      <p>These are linear-update variants of the set-theoretical
+        procedures given above.  They are allowed, but not required,
+        to mutate <var>set<sub>1</sub></var> to produce their
+        results.</p>
+    </div>
+
+    <h4 id="set-comparator">Comparator</h4>
+
+    <p><code>set-comparator</code></p>
+
+    <p>SRFI 128 comparator used to compare sets, which also
+      allows sets of sets, etc. to be constructed.
+      <code>Set-comparator</code> is required to provide at least
+      type-test, equality, and hash functions.
+      It is an error to compare sets with
+      different comparators (in the sense of <code>eqv?</code>).</p>
+
+
+    <h3 id="bag-procedures">Bag library</h3>
+
+    <p>The identifiers in this section are exported by the
+      <code>(srfi ??? bag)</code> library.</p>
+
+    <h4 id="bag-constructors">Constructors</h4>
+
+    <div class="proc-spec" id="bag">
+      <p><code>(bag <var>comparator</var> <var>element</var> …)</code> →
+        bag</p>
+
+      <p>Returns a newly allocated bag using <var>comparator</var>
+        and containing the given <var>element</var>s.  It is an error if
+        any of the <var>element</var> arguments does not satisfy
+        <var>comparator</var>’s type-test predicate.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-&gt;list (bag real-comparator)) ⇒ ()
+
+(bag-&gt;list (bag real-comparator 1 2 2 3))
+  ⇒ (2 3 1 2)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-unfold">
+      <p><code>(bag-unfold <var>stop?</var> <var>mapper</var>
+        <var>successor</var> <var>seed</var>
+        <var>comparator</var>)</code> → bag</p>
+
+      <p class="arg-restrict">
+        <var>seed</var> may be any object.  <var>stop?</var> is a
+        predicate taking a single value of <var>seed</var>’s type.
+        <var>mapper</var> and <var>successor</var> are procedures taking
+        a single value of <var>seed</var>’s type and returning a single
+        value.  It is an error if <var>mapper</var> returns a value
+        that does not satisfy <var>comparator</var>’s type-test
+        predicate.</p>
+
+      <p>Returns a newly allocated bag using <var>comparator</var>.
+        The elements of this bag are generated by the following
+        process:</p>
+
+      <ol>
+        <li>
+          <p>The new bag is initialized to the empty bag.</p>
+        </li>
+        <li>
+          <p><var>stop?</var> is applied to the current seed.  If the
+            result is true, then the unfolding process halts and the new
+            bag is returned.  Otherwise, the process continues.</p>
+        </li>
+        <li>
+          <p>The result of applying <var>mapper</var> to the current
+            seed is added to the bag.</p>
+        </li>
+        <li>
+          <p><var>successor</var> is applied to the current seed to
+            produce the next seed.  Unfolding continues with step 2.</p>
+        </li>
+      </ol>
+
+      <p>If <var>stop?</var>, <var>mapper</var>, or <var>successor</var>
+        mutate the values returned by <var>mapper</var>, then
+        <code>bag-unfold</code> returns a bag whose contents are
+        unspecified.  If multiple returns occur from
+        <code>bag-unfold</code>, the values returned by earlier returns
+        are not mutated.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-unfold (lambda (i) (&gt; i 2))
+             abs
+             (lambda (i) (+ i 1))
+             -2
+             real-comparator))
+  ⇒ (2 1 0 2 1) ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-accumulate">
+      <p><code>(bag-accumulate <var>proc</var> <var>comparator</var>
+        <var>seed<sub>1</sub></var> <var>seed<sub>2</sub></var>
+        …)</code> → bag</p>
+
+      <p class="arg-restrict">
+        The <var>seed</var>s may be any objects.  <var>proc</var> must
+        accept <var>n</var> arguments, where <var>n</var> is the
+        number of <var>seed</var>s, and return <var>n</var> + 1 values,
+        the first of which must satisfy <var>comparator</var>’s
+        type-test predicate.</p>
+
+      <p>Similar to <a href="#bag-unfold"><code>bag-unfold</code></a>,
+        except that a single procedure controls the unfolding of a new
+        bag.  Let <var>n</var> be the number of seeds:</p>
+
+      <ol>
+        <li><p>The new bag is initialized to the empty bag.</p></li>
+        <li>
+          <p><var>Proc</var> is applied to a procedure
+            <var>terminate</var> and the <var>seed</var>s, in that
+            order.  If <var>terminate</var> is invoked in tail context
+            on any number of arbitrary values, then the process halts
+            and the new bag along with those values are returned from
+            <code>bag-accumulate</code>.</p>
+        </li>
+        <li>
+          <p>Otherwise, <var>proc</var> is expected to return
+            <var>n</var> + 1 values: a new bag element and <var>n</var>
+            new seeds.  The element is added to the new bag and the
+            process continues at step two with the new seeds.</p>
+        </li>
+      </ol>
+
+      <p>It is an error for the number of seeds to vary between steps
+        of the unfolding process.  If <var>proc</var> mutates values
+        returned by earlier invocations of <var>proc</var>, then
+        <code>bag-accumulate</code> returns a bag whose contents are
+        unspecified.  If multiple returns occur from
+        <code>bag-accumulate</code>, the values returned by earlier
+        returns are not mutated.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(let-values (((bag sym)
+              (bag-accumulate (lambda (terminate i)
+                                (if (&gt; i 2)
+                                    (terminate 'finished)
+                                    (values (abs i) (+ i 1))))
+                              (make-real-comparator)
+                              -2)))
+  (values (bag-&gt;list bag) sym))
+  ⇒ (2 0 2 1 1)  ; or some permutation thereof
+    finished</code></pre>
+    </div>
+
+    <h4 id="bag-predicates">Predicates</h4>
+
+    <div class="proc-spec" id="bagp">
+      <p><code>(bag? <var>obj</var>)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if <var>obj</var> is a bag, and
+        <code>#f</code> otherwise.</p>
+    </div>
+
+    <div class="proc-spec">
+      <p><code>(bag-contains? <var>bag element</var>)</code> →
+        boolean</p>
+
+      <p>Returns <code>#t</code> if <var>element</var> is a member of
+        <var>bag</var> and <code>#f</code> otherwise.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-contains? (bag real-comparator 1 3 3) 3) ⇒ #t
+
+(bag-contains? (bag real-comparator 0 2 2) 3) ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec">
+      <p><code>(bag-empty? <var>bag</var>)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if <var>bag</var> has no elements and
+        <code>#f</code> otherwise.</p>
+    </div>
+
+    <div class="proc-spec">
+      <p><code>(bag-disjoint? <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var>)</code> → boolean</p>
+
+      <p class="arg-restrict">It is an error if the comparator
+        of <var>bag<sub>1</sub></var> is not the same (in the sense of
+        <code>eqv?</code>) as that of <var>bag<sub>2</sub></var>.</p>
+
+      <p>Returns <code>#t</code> if <var>bag<sub>1</sub></var> and
+        <var>bag<sub>2</sub></var> have no elements in common and
+        <code>#f</code> otherwise.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-disjoint? (bag real-comparator 1 3 3)
+               (bag real-comparator 2 6 6 4))
+  ⇒ #t
+
+(bag-disjoint? (bag real-comparator 1 3 3)
+               (bag real-comparator 3 4 6))
+  ⇒ #f</code></pre>
+    </div>
+
+
+    <h4 id="bag-accessors">Accessors</h4>
+
+    <div class="deprecated-proc-spec" id="bag-member">
+      <p>[Deprecated] <code>(bag-member <var>bag</var>
+        <var>element</var> <var>default</var>)</code> → obj</p>
+
+      <p class="arg-restrict"><var>Default</var> may be any Scheme
+        object.</p>
+
+      <p>Returns an element of <var>bag</var> that is equal (in the
+        sense of <var>bag</var>’s comparator) to <var>element</var>.
+        If <var>element</var> is not a member of <var>bag</var>,
+        <var>default</var> is returned instead.</p>
+
+      <div class="note">
+        <h5>Note</h5>
+
+        <p><em>This section is informational.</em></p>
+
+        <p>Unless a notion of element equality other than that
+          given by <var>bag</var>’s comparator is relevant, this
+          procedure is equivalent to</p>
+
+        <pre><code>(lambda (bag element default)
+  (if (bag-contains? bag element) element default)).</code></pre>
+
+        <p>Even when such a notion is relevant, note that it is
+          unspecified which “copy” of <var>element</var> is returned
+          if <var>bag</var> contains more than one.  (Under many
+          implementations, the notion of distinct copies may have no
+          meaning.)  Either avoid <code>bag-member</code> or treat
+          it as strictly equivalent to the above procedure.</p>
+      </div>
+    </div>
+
+    <div class="proc-spec" id="bag-element-comparator">
+      <p><code>(bag-element-comparator <var>bag</var>)</code> →
+        comparator</p>
+
+      <p>Returns the comparator used to compare the elements of
+        <var>bag</var>.</p>
+    </div>
+
+
+    <h4 id="bag-updaters">Updaters</h4>
+
+    <div class="proc-spec" id="bag-adjoin">
+      <p><code>(bag-adjoin <var>bag</var> <var>element</var> …)</code>
+        → bag</p>
+
+      <p>Returns a newly allocated bag that uses the same comparator as
+        <var>bag</var> and that contains all its elements
+        in addition to the <var>element</var> arguments.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list (bag-adjoin (bag real-comparator 1 2) 3 4 3))
+  ⇒ (1 3 2 4 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-adjoin-bang">
+      <p><code>(bag-adjoin! <var>bag</var> <var>element</var> …)</code>
+        → bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-adjoin"><code>bag-adjoin</code></a>.  It is
+        allowed, but not required, to mutate <var>bag</var> to produce
+        its result.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-adjoin-all">
+      <p><code>(bag-adjoin-all <var>bag</var> <var>list</var>)</code>
+        → bag</p>
+
+      <p class="arg-restrict">Every element of <var>list</var> must
+        satisfy <var>bag</var>’s comparator’s type-test predicate.</p>
+
+      <p>Returns a newly allocated bag that uses the same comparator as
+        <var>bag</var> and that contains all its elements
+        in addition to the elements of <var>list</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list (bag-adjoin-all (bag real-comparator 1 2)
+                           '(3 4 3)))
+  ⇒ (1 3 2 4 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-adjoin-all-bang">
+      <p><code>(bag-adjoin-all! <var>bag</var> <var>list</var>)</code>
+        → bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-adjoin-all"><code>bag-adjoin-all</code></a>.  It is
+        allowed, but not required, to mutate <var>bag</var> to produce
+        its result.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-delete">
+      <p><code>(bag-delete <var>bag</var> <var>element</var> …)</code>
+        → bag</p>
+
+      <p>Returns a newly allocated bag containing all the elements of
+        <var>bag</var> but with the <var>element</var>s removed.  More
+        precisely, if <code>bag-delete</code> is passed <var>n</var>
+        copies of an element <var>e</var>, then the element count of
+        <var>e</var> in <var>bag</var> is reduced by <var>n</var> to a
+        minimum of zero.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-delete (bag real-comparator 1 2 2 3) 2 3))
+  ⇒ (1 2)
+
+(bag-&gt;list (bag-delete (bag real-comparator 2 4 5) 2 6))
+  ⇒ (4 5)</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-delete-bang">
+      <p><code>(bag-delete! <var>bag</var> <var>element</var> …)</code>
+        → bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-delete"><code>bag-delete</code></a>.  It is
+        allowed, but not required, to mutate <var>bag</var> to produce
+        its result.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-delete-all">
+      <p><code>(bag-delete-all <var>bag</var>
+        <var>list</var>)</code> → bag</p>
+
+      <p class="arg-restrict">Every element of <var>list</var>
+        must satisfy the type-test predicate of <var>bag</var>’s
+        comparator.  Otherwise, it is an error.</p>
+
+      <p>Returns a newly allocated bag containing all the elements of
+        <var>bag</var> but with the elements of <var>list</var>
+        removed.  More precisely, if <var>list</var> contains
+        <var>n</var> copies of an element <var>e</var>, then the
+        element count of <var>e</var> in <var>bag</var> is reduced by
+        <var>n</var> to a minimum of zero.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-delete-all (bag real-comparator 1 2 2 3) '(2 3)))
+  ⇒ (1 2)
+
+(bag-&gt;list (bag-delete (bag real-comparator 2 4 5) '(2 6)))
+  ⇒ (4 5)</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-delete-all-bang">
+      <p><code>(bag-delete-all! <var>bag</var>
+        <var>list</var>)</code> → bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-delete-all"><code>bag-delete-all</code></a>.  It
+        is allowed, but not required, to mutate <var>bag</var> to
+        produce its result.</p>
+    </div>
+
+    <div class="deprecated-proc-spec" id="bag-search-bang">
+      <p>[Deprecated] <code>(bag-search! <var>bag</var>
+        <var>element</var> <var>failure</var>
+        <var>success</var>)</code></p>
+
+      <p>The <var>bag</var> is searched for <var>element</var>. If it is
+        not found, then the <var>failure</var> procedure is tail-called
+        with two continuation arguments, <var>insert</var> and
+        <var>ignore</var>, and is expected to tail-call one of them.
+        If <var>element</var> is found, then the <var>success</var>
+        procedure is tail-called with a matching element of
+        <var>bag</var> and two continuations, <var>update</var> and
+        <var>remove</var>, and is expected to tail-call one of them.</p>
+
+      <p>The effects of the continuations are as follows (where
+        <var>obj</var> is any Scheme object):</p>
+
+      <ul>
+        <li>
+          <p>Invoking <code>(<var>insert</var> <var>obj</var>)</code>
+            causes <var>element</var> to be inserted into
+            <var>bag</var>.</p>
+        </li>
+        <li>
+          <p>Invoking <code>(<var>ignore</var> <var>obj</var>)</code>
+            causes <var>bag</var> to remain unchanged.</p>
+        </li>
+        <li>
+          <p>Invoking <code>(<var>update</var> <var>new-element</var>
+            <var>obj</var>)</code> causes <var>new-element</var> to
+            be inserted into <var>bag</var> in place of
+            <var>element</var>.  (I.e. the count of <var>element</var>
+            in <var>bag</var> is reduced by one, to a minimum of
+            zero.)</p>
+        </li>
+        <li>
+          <p>Invoking <code>(<var>remove</var> <var>obj</var>)</code>
+            causes the matching element of <var>bag</var> to be
+            removed from it.  (I.e. the count of <var>element</var>
+            in <var>bag</var> is reduced by one, to a minimum of
+            zero.)</p>
+        </li>
+      </ul>
+
+      <p>In all cases, two values are returned: the possibly updated
+        <var>bag</var> and <var>obj</var>.</p>
+    </div>
+
+    <div id="bag-pop" class="proc-spec">
+      <p><code>(bag-pop <var>bag</var> [<var>failure</var>])</code>
+        → obj …</p>
+
+      <p class="arg-restrict">If <var>failure</var> is provided, it
+        must be a procedure accepting zero arguments.  Otherwise, it
+        is an error.</p>
+
+      <p>Chooses an arbitrary element <var>x</var> of <var>bag</var>
+        and returns two values: a newly allocated bag using the same
+        comparator as <var>bag</var> and containing all of its elements
+        except <var>x</var>, and <var>x</var> itself.  If
+        <var>bag</var> is empty and <var>failure</var> is provided,
+        then <var>failure</var> is invoked in tail context on zero
+        arguments.  Otherwise, it is an error.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(let-values (((rest x) (bag-pop (bag real-comparator 1 2 2 3))))
+  (values (bag-&gt;list rest) x))
+  ⇒ (1 2 3)  ; possibly
+    2</code></pre>
+      </div>
+
+    <div class="proc-spec">
+      <p><code>(bag-pop! <var>bag</var> [<var>failure</var>])</code>
+        → obj …</p>
+
+      <p>Linear-update variant of
+        <a href="#bag-pop"><code>bag-pop</code></a> which is allowed,
+        but not required, to mutate <var>bag</var> to produce its
+        result.</p>
+    </div>
+
+    <h4 id="the-whole-bag">The whole bag</h4>
+
+    <div class="proc-spec">
+      <p><code>(bag-size <var>bag</var>)</code> → exact-integer</p>
+
+      <p>Returns the number of elements in <var>bag</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-size (bag real-comparator 1 2 2 3)) ⇒ 4</code></pre>
+    </div>
+
+
+    <h4 id="bag-searching">Searching</h4>
+
+    <div class="proc-spec" id="bag-find">
+      <p><code>(bag-find <var>pred</var> <var>bag</var>
+        <var>failure</var>)</code> → obj …</p>
+
+      <p>Returns an arbitrarily-chosen element of <var>bag</var> that
+        satisfies <var>pred</var>.  If no such element exists, then
+        <var>failure</var> is invoked in tail context on zero
+        arguments.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>
+(bag-find even?
+          (bag real-comparator 1 2 3 4 2)
+          (lambda () #f))
+  ⇒ 2  ; or 4
+
+(bag-find negative?
+          (bag real-comparator 1 2 3 4 2)
+          (lambda () #f))
+  ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-count">
+      <p><code>(bag-count <var>pred</var> <var>bag</var>)</code> →
+        exact-integer</p>
+
+      <p>Returns the number of elements of <var>bag</var> that satisfy
+        <var>pred</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-count even? (bag real-comparator 1 2 3))
+  ⇒ 1</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-anyp">
+      <p><code>(bag-any? <var>pred</var> <var>bag</var>)</code> →
+        boolean</p>
+
+      <p>Returns <code>#t</code> if any element of <var>bag</var>
+        satisfies <var>pred</var>.  Otherwise, returns
+        <code>#f</code>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-any? even? (bag real-comparator 1 2 3))
+  ⇒ #t
+
+(bag-any? negative? (bag real-comparator 1 2 3 4))
+  ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-everyp">
+      <p><code>(bag-every? <var>pred</var> <var>bag</var>)</code> →
+        boolean</p>
+
+      <p>Returns <code>#t</code> if every element of <var>bag</var>
+        satisfies <var>pred</var>.  Otherwise, returns
+        <code>#f</code>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-every? integer? (bag real-comparator 1 2 3 4))
+  ⇒ #t
+
+(bag-every? even? (bag real-comparator 1 2 3 4))
+  ⇒ #f</code></pre>
+    </div>
+
+
+    <h3 id="bag-mapping-and-folding">Mapping &amp; folding</h3>
+
+    <div class="proc-spec" id="bag-map">
+      <p><code>(bag-map <var>proc</var> <var>comparator</var>
+        <var>bag</var>)</code> → bag</p>
+
+      <p class="arg-restrict"><var>Proc</var> must be a procedure
+        accepting one argument, an element of <var>bag</var>, and
+        returning one value which must satisfy <var>comparator</var>’s
+        type-test predicate.</p>
+
+      <p>Applies <var>proc</var> to each element of <var>bag</var> in
+        an arbitrary order and returns a newly allocated bag, created
+        as if by <code>(bag <var>comparator</var>)</code>, which
+        contains the results of the applications.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-map abs (bag real-comparator -2 -1 0 1 2)))
+  ⇒ (0 1 1 2 2)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-for-each">
+      <p><code>(bag-for-each <var>proc</var> <var>bag</var>)</code> →
+        unspecified</p>
+
+      <p class="arg-restrict"><var>Proc</var> must be a procedure
+        accepting one argument, an element of <var>bag</var>.</p>
+
+      <p>Applies <var>proc</var> to the elements of <var>bag</var> in an
+        arbitrary order, discarding the returned values.  Returns an
+        unspecified result.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(let ((sum 0))
+  (bag-for-each (lambda (k) (set! sum (+ sum k)))
+                (bag real-comparator 1 2 3 3 4))
+  sum) ⇒ 13</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-fold">
+      <p><code>(bag-fold <var>proc</var> <var>nil</var>
+        <var>bag</var>)</code> → obj</p>
+
+      <p class="arg-restrict"><var>Proc</var> must be a procedure
+        accepting two arguments and returning a single value.
+        <var>Nil</var> may be any Scheme object.</p>
+
+      <p>Invokes <var>proc</var> on each member of <var>bag</var> in an
+        arbitrary order, passing the result of the previous invocation
+        as a second argument.  For the first invocation, <var>nil</var>
+        is used as the second argument.  Returns the result of the last
+        invocation, or <var>nil</var> if <var>proc</var> was not
+        invoked.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-fold cons '() (bag real-comparator 1 1 2))
+  ⇒ (1 2 1)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-filter">
+      <p><code>(bag-filter <var>pred</var> <var>bag</var>)</code> →
+        bag</p>
+
+      <p>Returns a newly allocated bag with the same comparator as
+        <var>bag</var> and containing just the elements of
+        <var>bag</var> that satisfy <var>pred</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-filter even? (bag real-comparator 1 1 2 2 3 4 4)))
+  ⇒ (2 4 2 4)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-filter-bang">
+      <p><code>(bag-filter! <var>pred</var> <var>bag</var>)</code> →
+        bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-filter"><code>bag-filter</code></a>.  It
+        is allowed, but not required, to mutate <var>bag</var> to
+        produce its result.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-remove">
+      <p><code>(bag-remove <var>pred</var> <var>bag</var>)</code> →
+        bag</p>
+
+      <p>Returns a newly allocated bag with the same comparator as
+        <var>bag</var> and containing just the elements of
+        <var>bag</var> that do not satisfy <var>pred</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-remove even? (bag real-comparator 1 1 2 2 3 4 4)))
+  ⇒ (1 1 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-remove-bang">
+      <p><code>(bag-remove! <var>pred</var> <var>bag</var>)</code> →
+        bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-remove"><code>bag-remove</code></a>.  It
+        is allowed, but not required, to mutate <var>bag</var> to
+        produce its result.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-partition">
+      <p><code>(bag-partition <var>pred</var>
+        <var>bag</var>)</code> → bag, bag</p>
+
+      <p>Returns two values: a newly allocated bag with the same
+        comparator as <var>bag</var> that contains just the elements of
+        <var>bag</var> that satisfy <var>pred</var>, and another
+        newly allocated bag, also with the same comparator, that
+        contains just the elements of <var>bag</var> that do not
+        satisfy <var>pred</var>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(let-values (((evens odds)
+              (bag-partition even?
+                             (bag real-comparator 1 1 2 2 3 4 4))))
+  (values (bag-&gt;list evens) (bag-&gt;list odds)))
+  ⇒ (2 4 2 4)  ; order unspecified
+    (1 3 3)</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-partition-bang">
+      <p><code>(bag-partition! <var>pred</var>
+        <var>bag</var>)</code> → bag, bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-partition"><code>bag-partition</code></a>.  It
+        is allowed, but not required, to mutate <var>bag</var> to
+        produce its results.</p>
+    </div>
+
+
+    <h4 id="bag-copying-and-conversion">Copying &amp; conversion</h4>
+
+    <div class="proc-spec" id="bag-copy">
+      <p><code>(bag-copy <var>bag</var>)</code> → bag</p>
+
+      <p>Returns a newly allocated bag containing the elements of
+        <var>bag</var> and using the same comparator.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-to-list">
+      <p><code>(bag-&gt;list <var>bag</var>)</code> → list</p>
+
+      <p>Returns a newly allocated list containing the members of
+        <var>bag</var> in unspecified order.</p>
+    </div>
+
+    <div class="proc-spec" id="list-to-bag">
+      <p><code>(list-&gt;bag <var>comparator</var>
+        <var>list</var>)</code> → bag</p>
+
+      <p class="arg-restrict">It is an error if any element of
+        <var>list</var> does not satisfy <var>comparator</var>’s
+        type-test predicate.</p>
+
+      <p>Returns a newly allocated bag using <var>comparator</var> and
+        containing the elements of <var>list</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (list-&gt;bag real-comparator '(1 3 3 3)))
+  ⇒ (3 1 3 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="deprecated-proc-spec" id="list-to-bag-bang">
+      <p>[Deprecated] <code>(list-&gt;bag! <var>bag</var>
+        <var>list</var>)</code> → bag</p>
+
+      <p class="arg-restrict">Every element of <var>list</var> must
+        satisfy <var>bag</var>’s comparator’s type-test predicate.</p>
+
+      <p>Alias of
+        <a href="#bag-adjoin-all-bang"><code>bag-adjoin-all!</code></a>.
+      </p>
+    </div>
+
+    <div class="proc-spec" id="bag-to-set">
+      <p><code>(bag-&gt;set <var>bag</var>)</code> → set</p>
+
+      <p>Returns a newly allocated set using the same comparator as
+        <var>bag</var> and containing all its unique elements.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(set-&gt;list
+ (bag-&gt;set (bag real-comparator 1 1 2 3 3 3)))
+  ⇒ (1 3 2)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-to-bag">
+      <p><code>(set-&gt;bag <var>set</var>)</code> → bag</p>
+
+      <p>Returns a newly allocated bag using the same comparator as
+        <var>set</var> and containing the same elements.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (set-&gt;bag (set real-comparator 1 2 3)))
+  ⇒ (1 2 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="set-to-bag-bang">
+      <p><code>(set-&gt;bag! <var>bag</var> <var>set</var>)</code>
+        → bag</p>
+
+      <p>Returns a bag using the same comparator as
+        <var>bag</var> and containing the same elements, in addition
+        to each element of <var>set</var>.  <code>set-&gt;bag!</code>
+        is permitted, but not required, to mutate <var>bag</var> to
+        produce its result.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (set-&gt;bag! (bag real-comparator 1 2 2)
+            (set real-comparator 2 3 4)))
+  ⇒ (1 2 3 2 4 2)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-to-alist">
+      <p><code>(bag-&gt;alist <var>bag</var>)</code> → alist</p>
+
+      <p>Returns a newly allocated list of pairs.  Each pair’s car
+        is a unique element of <var>bag</var> and its cdr is
+        the number of occurrences (an exact integer) of that
+        element.  The order of the list is unspecified.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;alist
+ (bag real-comparator 1 1 2 2 2 3))
+  ⇒ ((1 . 2) (3 . 1) (2 . 3))  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="alist-to-bag">
+      <p><code>(alist-&gt;bag <var>comparator</var>
+        <var>alist</var>)</code> → bag</p>
+
+      <p class="arg-restrict">Each element of <var>alist</var> must
+        be a pair whose car satisfies <var>comparator</var>’s type-test
+        predicate and whose cdr is a non-negative exact integer.
+        Otherwise, it is an error.</p>
+
+      <p>Returns a newly allocated bag using <var>comparator</var>,
+        where the keys of <var>alist</var> specify the elements and
+        the corresponding values specify how many times they occur.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (alist-&gt;bag real-comparator
+             '((1 . 2) (2 . 3) (3 . 1))))
+  ⇒ (1 2 1 2 3 2)  ; order unspecified</code></pre>
+    </div>
+
+
+    <h4 id="bag-comparison">Comparison</h4>
+
+    <p>It is an error to pass bags to these predicates that do not
+      share the same comparator (in the sense of
+      <code>eqv?</code>).</p>
+
+    <p>None of these predicates produces a total order on
+      bags.  In particular, bags do not have the trichotomy property
+      under <code>bag=?</code>, <code>bag&lt;?</code>,
+      and <code>bag&gt;?</code>: two bags may fail to satisfy all three
+      of these predicates.</p>
+
+    <div class="proc-spec" id="bag-equalp">
+      <p><code>(bag=? <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>Returns <code>#t</code> if each <var>bag</var> contains the
+        same elements.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag=? (bag real-comparator 1 2 3 3) (bag real-comparator 2 3 1 3))
+  ⇒ #t
+
+(bag=? (bag real-comparator 1 3 2) (bag real-comparator 1 3 3 2))
+  ⇒ #f
+
+(bag=? (bag real-comparator 1 2 3) (bag real-comparator 1 6))
+  ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-leqp">
+      <p><code>(bag&lt;=? <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>Returns true if each <var>bag<sub><var>i</var></sub></var> other than the
+        last is included in <var>bag<sub><var>i</var>+1</sub></var>, and
+        <code>#f</code> otherwise.
+        A bag <var>A</var> is included in a bag <var>B</var> if and
+        only if</p>
+
+      <pre class="example"><code>(&lt;= (bag-element-count <var>A</var> <var>x</var>)
+    (bag-element-count <var>B</var> <var>x</var>))</code></pre>
+
+      <p>is true for every element <var>x</var> of
+        <var>A</var>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag&lt;=? (bag real-comparator 1 2 3 3) (bag real-comparator 2 3 1 3))
+  ⇒ #t
+
+(bag&lt;=? (bag real-comparator 1 3 2) (bag real-comparator 1 3 3 2))
+  ⇒ #t
+
+(bag&lt;=? (bag real-comparator 1 3 2) (bag real-comparator 1 3 3 2 4))
+  ⇒ #t
+
+(bag&lt;=? (bag real-comparator 1 3 3 2) (bag real-comparator 1 3 2 4))
+  ⇒ #f
+
+(bag&lt;=? (bag real-comparator 1 2 3) (bag real-comparator 1 6))
+  ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-lessp">
+      <p><code>(bag&lt;? <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>With two arguments, returns <code>#t</code> if
+        <var>bag<sub>1</sub></var> is included in
+        <var>bag<sub>2</sub></var> (in the sense of <a
+        href="#bag-leqp"><code>bag&lt;=?</code></a>) and
+        <var>bag<sub>1</sub></var> has fewer elements than
+        <var>bag<sub>2</sub></var>.  With a single argument, or with
+        more than two arguments, <code>bag&lt;?</code> returns
+        <code>#t</code> if each <var>bag<sub><var>i</var></sub></var> other than
+        the last satisfies this relation with
+        <var>bag<sub><var>i</var>+1</sub></var>.  Otherwise, it returns
+        <code>#f</code>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag&lt;? (bag real-comparator 1 2 3) (bag real-comparator 2 3 1 3))
+  ⇒ #t
+
+(bag&lt;? (bag real-comparator 1 3 3 2) (bag real-comparator 1 3 3 2))
+  ⇒ #f
+
+(bag&lt;? (bag real-comparator 1 3 2) (bag real-comparator 1 3 3 2 4))
+  ⇒ #t
+
+(bag&lt;? (bag real-comparator 1 2 3) (bag real-comparator 1 3 6))
+  ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-geqp">
+      <p><code>(bag&gt;=? <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>Returns true if each <var>bag<sub><var>i</var></sub></var> other than the
+        last includes <var>bag<sub><var>i</var>+1</sub></var>, and
+        <code>#f</code> otherwise.
+        A bag <var>A</var> is included in a bag <var>B</var> if and
+        only if
+        <code>(bag&lt;=? <var>B</var> <var>A</var>)</code> is true.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag&gt;=? (bag real-comparator 1 2 3 3) (bag real-comparator 2 3 1 3))
+  ⇒ #t
+
+(bag&gt;=? (bag real-comparator 1 3 3 2) (bag real-comparator 1 3 2))
+  ⇒ #t
+
+(bag&gt;=? (bag real-comparator 1 3 3 2 4) (bag real-comparator 1 3 2))
+  ⇒ #t
+
+(bag&gt;=? (bag real-comparator 1 3 2) (bag real-comparator 1 2 3 3))
+  ⇒ #f
+
+(bag&gt;=? (bag real-comparator 1 6) (bag real-comparator 1 2 3))
+  ⇒ #f</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-greaterp">
+      <p><code>(bag&gt;? <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p>With two arguments, returns <code>#t</code> if
+        <var>bag<sub>1</sub></var> includes
+        <var>bag<sub>2</sub></var> (in the sense of <a
+        href="#bag-geqp"><code>bag&gt;=?</code></a>) and
+        <var>bag<sub>1</sub></var> has more elements than
+        <var>bag<sub>2</sub></var>.  With a single argument, or with
+        more than two arguments, <code>bag&gt;?</code> returns
+        <code>#t</code> if each <var>bag<sub><var>i</var></sub></var> other than
+        the last satisfies this relation with
+        <var>bag<sub><var>i</var>+1</sub></var>.  Otherwise, it returns
+        <code>#f</code>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag&gt;? (bag real-comparator 1 2 3 3) (bag real-comparator 2 1 3))
+  ⇒ #t
+
+(bag&gt;? (bag real-comparator 1 3 3 2) (bag real-comparator 1 3 3 2))
+  ⇒ #f
+
+(bag&gt;? (bag real-comparator 1 3 3 2 4) (bag real-comparator 1 3 2))
+  ⇒ #t
+
+(bag&gt;? (bag real-comparator 1 3 3 2) (bag real-comparator 1 2 3))
+  ⇒ #t
+
+(bag&gt;? (bag real-comparator 1 2 3) (bag real-comparator 1 6))
+  ⇒ #f</code></pre>
+    </div>
+
+    <h4 id="bag-set-theory">Set theory operations</h4>
+
+    <div class="proc-spec" id="bag-union">
+      <p><code>(bag-union
+        <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
+        …)</code> → bag</p>
+
+      <p>Returns a newly allocated bag that is the union of the
+        <var>bag</var>s.  The number of equal elements in the result
+        is equal to the largest number of equal elements in any of
+        the <var>bag</var>s.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-union (bag real-comparator 1 3 3)
+            (bag real-comparator 2 2 4 3))
+  ⇒ (1 2 2 3 3 4)  ; order unspecified
+
+(bag-&gt;list
+ (bag-union (bag real-comparator 1 3 3)
+            (bag real-comparator 2 2 4 3)
+            (bag real-comparator 1 1 1 4)))
+  ⇒ (1 1 1 2 2 3 3 4)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-intersection">
+      <p><code>(bag-intersection
+        <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
+        …)</code> → bag</p>
+
+      <p>Returns a newly allocated bag that is the intersection of the
+        <var>bag</var>s.  The number of equal elements in the result
+        is equal to the smallest number of equal elements in any of
+        the <var>bag</var>s.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-intersection (bag real-comparator 1 2 3 3)
+                   (bag real-comparator 2 2 4 3 3)))
+  ⇒ (2 3 3)  ; order unspecified
+
+(bag-&gt;list
+ (bag-intersection (bag real-comparator 1 2 3 3)
+                   (bag real-comparator 2 2 4 3 3)
+                   (bag real-comparator 3 4 5)))
+  ⇒ (3)</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-difference">
+      <p><code>(bag-difference
+        <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
+        …)</code> → bag</p>
+
+      <p>Returns a newly allocated bag that is the asymmetric
+        difference of the <var>bag</var>s.  The number of equal
+        elements in the result is equal to the number of equal elements
+        in <var>bag<sub>1</sub></var>, minus the number of equal
+        elements in the other bags, but not less than zero.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-intersection (bag real-comparator 1 2 3 3 3)
+                   (bag real-comparator 2 2 4 3)))
+  ⇒ (1 3 3)  ; order unspecified
+
+(bag-&gt;list
+ (bag-intersection (bag real-comparator 1 2 3 3 3)
+                   (bag real-comparator 2 2 4 3)
+                   (bag real-comparator 3 3)))
+  ⇒ (1)</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-xor">
+      <p><code>(bag-xor
+        <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
+        …)</code> → bag</p>
+
+      <p>Returns a newly allocated bag that is the symmetric
+        difference of the <var>bag</var>s.  The number of equal
+        elements in the result is equal to the absolute value of
+        the difference between the number of equal elements
+        in <var>bag<sub>1</sub></var> and
+        <var>bag<sub>2</sub></var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-xor (bag real-comparator 1 1 2 3 3 3)
+          (bag real-comparator 2 2 3 3)))
+  ⇒ (1 1 2 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec">
+      <p id="bag-union-bang"><code>(bag-union!
+        <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
+        …)</code> → bag</p>
+      <p id="bag-intersection-bang"><code>(bag-intersection!
+        <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
+        …)</code> → bag</p>
+      <p id="bag-difference-bang"><code>(bag-difference!
+        <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
+        …)</code> → bag</p>
+      <p id="bag-xor-bang"><code>(bag-xor! <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var>)</code> → bag</p>
+
+      <p>These are linear-update variants of the set-theoretical
+        procedures given above.  They are allowed, but not required,
+        to mutate <var>bag<sub>1</sub></var> to produce their
+        results.</p>
+    </div>
+
+
+    <h4 id="bag-comparator">Comparator</h4>
+
+    <p><code>bag-comparator</code></p>
+
+    <p>SRFI 128 comparator used to compare bags, which also
+      allows sets of bags, etc. to be constructed.
+      <code>Bag-comparator</code> is required to provide at least
+      type-test, equality, and hash functions.
+      It is an error to compare bags with
+      different comparators (in the sense of <code>eqv?</code>).</p>
+
+
+    <h4 id="additional-bag-procs">Additional bag procedures</h4>
+
+    <div class="proc-spec" id="bag-sum">
+      <p><code>(bag-sum <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var> …)</code> → bag</p>
+
+      <p class="arg-restrict">The <var>bag</var> arguments must all
+        use the same comparator (in the sense of <code>eqv?</code>).</p>
+
+      <p>Returns a newly allocated bag using the same comparator as
+        the <var>bag</var>s and containing all the unique
+        elements in all the <var>bags</var>, such that the count of
+        each unique element in the result is equal to the sum of the
+        counts of that element in the arguments.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-sum (bag real-comparator 1 2 3)
+          (bag real-comparator 2 3 4)
+          (bag real-comparator 3 4 5))
+  ⇒ (1 2 2 3 3 3 4 4 5)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-sum-bang">
+      <p><code>(bag-sum! <var>bag<sub>1</sub></var>
+        <var>bag<sub>2</sub></var> … )</code> → bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-sum"><code>bag-sum</code></a> which is allowed,
+        but not required, to mutate <var>bag<sub>1</sub></var> to
+        produce its result.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-product">
+      <p><code>(bag-product <var>k</var> <var>bag</var>)</code>
+        → bag</p>
+
+      <p class="arg-restrict">It is an error if <var>k</var> is not
+        a non-negative exact integer.</p>
+
+      <p>Returns a newly allocated bag using the same comparator as
+        <var>bag</var> and containing all the unique
+        elements in <var>bag</var>, where the count of each unique
+        element in the resulting bag is equal to the count of that
+        element in <var>bag</var> multiplied by <var>k</var>.
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-product 3 (bag real-comparator 1 2))
+  ⇒ (1 1 1 2 2 2)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-product-bang">
+      <p><code>(bag-product! <var>k</var>
+        <var>bag</var>)</code> → bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-product"><code>bag-product</code></a> which is
+        allowed, but not required, to mutate <var>bag</var> to produce
+        its result.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-unique-size">
+      <p><code>(bag-unique-size <var>bag</var>)</code> →
+        exact-integer</p>
+
+      <p>Returns the number of unique elements of <var>bag</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-unique-size (bag real-comparator 1 1 2 3 3 3)) ⇒ 3</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-element-count">
+      <p><code>(bag-element-count <var>bag</var>
+        <var>element</var>)</code> → exact-integer</p>
+
+      <p>Returns an exact integer representing the number of times
+        that <var>element</var> appears in <var>bag</var>.</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-element-count (bag real-comparator 1 1 2) 1) ⇒ 2
+
+(bag-element-count (bag real-comparator 1 1 2) 3) ⇒ 0</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-for-each-unique">
+      <p><code>(bag-for-each-unique <var>proc</var>
+        <var>bag</var>)</code> → unspecified</p>
+
+      <p class="arg-restrict"><var>Proc</var> must be a procedure
+        accepting two arguments, an element of <var>bag</var> and
+        an exact integer.</p>
+
+      <p>Applies <var>proc</var> to each unique element of
+        <var>bag</var> in arbitrary order, passing the element as the
+        first argument and the number of times it occurs in
+        <var>bag</var> as the second, and discarding the returned
+        values.  Returns an unspecified result.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(let ((elts '()))
+  (bag-for-each-unique (lambda (e c)
+                         (set! elts (cons (cons e c) elts)))
+                       (bag real-comparator 1 1 2 3 3 3))
+  elts)
+  ⇒ ((1 . 2) (2 . 1) (3 . 3))  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-fold-unique">
+      <p><code>(bag-fold-unique <var>proc</var> <var>nil</var>
+        <var>bag</var>)</code> → obj</p>
+
+      <p class="arg-restrict"><var>Proc</var> must be a procedure
+        accepting three arguments and returning a single value.
+        <var>Nil</var> may be any Scheme object.</p>
+
+      <p>Invokes <var>proc</var> on each unique element of
+        <var>bag</var> in arbitrary order, passing the number of
+        occurrences (an exact integer) as the second argument and
+        the result of the previous invocation as the third argument.
+        For the first invocation, <var>nil</var> is used as the
+        third argument.  Returns the result of the last invocation.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-fold-unique (lambda (e c elts)
+                   (cons (cons e c elts)))
+                 '()
+                 (bag real-comparator 1 1 2 3 3 3))
+  ⇒ ((1 . 2) (2 . 1) (3 . 3))  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-increment">
+      <p><code>(bag-increment <var>bag</var> <var>element</var>
+        <var>k</var>)</code> → bag</p>
+
+      <p class="arg-restrict">It is an error if <var>k</var> is not a
+        non-negative exact integer.</p>
+
+      <p>Returns a newly allocated bag using the same comparator as
+        <var>bag</var> and containing the same elements, but with
+        <var>k</var> additional copies of <var>element</var>.</p>
+
+      <h5>Example</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-increment (bag real-comparator 1 1 2 3) 2 3))
+  ⇒ (1 1 2 2 2 2 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-increment-bang">
+      <p><code>(bag-increment! <var>bag</var> <var>element</var>
+        <var>k</var>)</code> → bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-increment"><code>bag-increment</code></a> which
+        is allowed, but not required, to mutate <var>bag</var> to
+        produce its result.</p>
+    </div>
+
+    <div class="proc-spec" id="bag-decrement">
+      <p><code>(bag-decrement <var>bag</var> <var>element</var>
+        <var>k</var>)</code> → bag</p>
+
+      <p class="arg-restrict">It is an error if <var>k</var> is not a
+        non-negative exact integer.</p>
+
+      <p>Returns a newly allocated bag using the same comparator as
+        <var>bag</var> and containing the same elements, but with
+        <var>k</var> fewer copies of <var>element</var> (minimum
+        zero).</p>
+
+      <h5>Examples</h5>
+
+      <pre class="example"><code>(bag-&gt;list
+ (bag-decrement (bag real-comparator 1 1 1 2 3) 1 2))
+  ⇒ (1 2 3)  ; order unspecified
+
+(bag-&gt;list
+ (bag-decrement (bag real-comparator 1 2 3) 1 3))
+  ⇒ (2 3)  ; order unspecified
+
+(bag-&gt;list
+ (bag-decrement (bag real-comparator 1 2 3) 4 10))
+ ⇒  (1 2 3)  ; order unspecified</code></pre>
+    </div>
+
+    <div class="proc-spec" id="bag-decrement-bang">
+      <p><code>(bag-decrement! <var>bag</var> <var>element</var>
+        <var>k</var>)</code> → bag</p>
+
+      <p>A linear-update variant of
+        <a href="#bag-decrement"><code>bag-decrement</code></a> which
+        is allowed, but not required, to mutate <var>bag</var> to
+        produce its result.</p>
+    </div>
+
+
+
+    <h2 id="implementation">Implementation</h2>
+
+    <p>A sample implementation in R<sup>7</sup>RS Scheme can be found
+      in the SRFI repository.  It implements sets and bags on top of the
+      hashmaps of <code>(srfi 146 hash)</code>.  In addition to SRFI 146,
+      the implementation requires SRFIs 1, 128, and 151.  To run the
+      included test suite you will also need SRFIs 64 and 132.</p>
+
+    <h2 id="acknowledgements">Acknowledgements</h2>
+
+    <p>Thanks to John Cowan for creating SRFIs 113 and 153.  His work
+      provided the template for this SRFI.</p>
+
+    <p>Thanks to those who provided feedback on this SRFI via the SRFI
+      mailing list or the #scheme IRC channel, including:</p>
+
+    <p>Of course, none of the above should be taken to mean that any of
+      these people endorse the SRFI’s final draft.</p>
+
+    <h2 id="references">References</h2>
+
+    <p id="ref-rfc-2119">S. Bradner, <cite>Key words for use in RFCs to
+      Indicate Requirement Levels</cite> (RFC 2119), 1997.
+      <a href="https://datatracker.ietf.org/doc/html/rfc2119">
+        https://datatracker.ietf.org/doc/html/rfc2119</a></p>
+
+    <p id="ref-srfi-113">John Cowan. <cite>SRFI 113: Sets and
+      bags</cite>.
+      <a href="https://srfi.schemers.org/srfi-113/">https://srfi.schemers.org/srfi-113/</a>,
+      2014.</p>
+
+    <p id="ref-srfi-128">John Cowan. <cite>SRFI 128: Comparators
+      (reduced)</cite>.
+      <a href="https://srfi.schemers.org/srfi-128/">https://srfi.schemers.org/srfi-128/</a>,
+      2016.</p>
+
+    <p id="ref-srfi-146">Arthur A. Gleckler and Marc
+      Nieper-Wißkirchen, <cite>SRFI 146: Mappings</cite>.
+      <a href="https://srfi.schemers.org/srfi-146/">https://srfi.schemers.org/srfi-146/</a>,
+      2018.</p>
+
+    <p id="ref-srfi-153">John Cowan. <cite>SRFI 153: Ordered
+      sets</cite>.
+      <a href="https://srfi.schemers.org/srfi-153/">https://srfi.schemers.org/srfi-153/</a>,
+      2023.</p>
+
+    <p id="ref-srfi-162">John Cowan. <cite>SRFI 162: Comparators
+      sublibrary</cite>.
+      <a href="https://srfi.schemers.org/srfi-162/">https://srfi.schemers.org/srfi-162/</a>,
+      2019.</p>
+
+    <p id="ref-r7rs">Alex Shinn, John Cowan, &amp; Arthur A. Gleckler,
+      eds., <cite>Revised<sup>7</sup> Report on the Algorithmic Language
+      Scheme</cite> (R7RS Small), 2013.
+      <a href="https://small.r7rs.org/">https://small.r7rs.org</a></p>
+
+    <h2 id="copyright">Copyright</h2>
+    <p>&copy; 2026 Wolfgang Corcoran-Mathe and John Cowan.</p>
+
+    <p>Permission is hereby granted, free of charge, to any person
+      obtaining a copy of this software and associated documentation files
+      (the "Software"), to deal in the Software without restriction,
+      including without limitation the rights to use, copy, modify, merge,
+      publish, distribute, sublicense, and/or sell copies of the Software,
+      and to permit persons to whom the Software is furnished to do so,
+      subject to the following conditions:</p>
+
+    <p>The above copyright notice and this permission notice (including the
+      next paragraph) shall be included in all copies or substantial
+      portions of the Software.</p>
+
+    <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+      NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+      BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+      ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+      CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+      SOFTWARE.</p>
+
+      <hr>
+      <address>Editor: <a href="mailto:srfi-editors+at+srfi+dot+schemers+dot+org">Arthur A. Gleckler</a></address>
+  </body>
+</html>
