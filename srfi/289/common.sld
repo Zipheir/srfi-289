@@ -2,7 +2,7 @@
 ;;;;
 ;;;; SPDX-License-Identifier: MIT
 
-(define-library (srfi NNN common)
+(define-library (srfi 289 common)
   (import (scheme base)
           (srfi 146 hash))
   (export variadic-comparison

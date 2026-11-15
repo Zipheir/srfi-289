@@ -2,7 +2,7 @@
 ;;;;
 ;;;; SPDX-License-Identifier: MIT
 
-(define-library (srfi NNN bag)
+(define-library (srfi 289 bag)
   (include-library-declarations "bag-exports.scm")
   (import (scheme base)
           (scheme case-lambda)
@@ -10,8 +10,8 @@
           (srfi 128)
           (srfi 146 hash)
           (only (srfi 151) bitwise-xor)
-          (srfi NNN common)
-          (only (srfi NNN set) set-element-comparator
+          (srfi 289 common)
+          (only (srfi 289 set) set-element-comparator
                                set-fold)
           )
   (begin

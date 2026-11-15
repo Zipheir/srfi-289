@@ -8,8 +8,8 @@
 	  (prefix (srfi 1) s1:)
 	  (prefix (srfi 128) s128:)
 	  (prefix (srfi 132) s132:)
-	  (srfi NNN bag)
-	  (srfi NNN set)
+	  (srfi 289 bag)
+	  (srfi 289 set)
 	  )
   (begin
    (define intc (s128:make-comparator integer? = #f s128:number-hash))

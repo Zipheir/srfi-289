@@ -2,7 +2,7 @@
 ;;;;
 ;;;; SPDX-License-Identifier: MIT
 
-(define-library (srfi NNN set)
+(define-library (srfi 289 set)
   (include-library-declarations "set-exports.scm")
   (import (scheme base)
           (scheme case-lambda)
@@ -10,7 +10,7 @@
           (srfi 128)
           (srfi 146 hash)
           (only (srfi 151) bitwise-xor)
-          (srfi NNN common)
+          (srfi 289 common)
           )
   (begin
    (define (set comparator . els)
