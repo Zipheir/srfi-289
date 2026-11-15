@@ -89,6 +89,8 @@ SPDX-License-Identifier: MIT
         <ol>
           <li><a href="#notation">Notation</a></li>
           <li><a href="#linear-update">Linear update</a></li>
+          <li><a href="#comparator-restrictions">Comparator
+            restrictions</a></li>
           <li><a href="#example-note">Note on examples</a></li>
           <li>
             <a href="#set-procedures">Set library</a>
@@ -287,6 +289,12 @@ SPDX-License-Identifier: MIT
       in this document, should be interpreted according to
       <a href="#ref-rfc-2119">RFC 2119</a>.</p>
 
+    <p>This SRFI provides two Scheme libraries,
+      <code>(srfi 289 set)</code> and <code>(srfi 289 bag)</code>.
+      Theses libraries may be provided under the usual aliases, e.g.
+      <code>(srfi :289 set)</code>, <code>(srfi srfi-289 set)</code>,
+      etc.</p>
+
     <p><dfn>Sets</dfn> and <dfn>bags</dfn> form new types as if they
       were created by <code>define-record-type</code> (R<sup>7</sup>RS
       §5.5).  Values of both types use a specific
@@ -409,6 +417,15 @@ SPDX-License-Identifier: MIT
       so code using them should incur no extra performance costs.</p>
 
 
+    <h3 id="comparator-restrictions">Comparator restrictions</h3>
+
+    <p>A comparator used by a set or bag must provide an equality
+      procedure. (See <a href="#ref-srfi-128">SRFI 128</a>.)
+      Implementations of this SRFI may additionally require that
+      comparators provide a hash procedure, but they must not require
+      an ordering procedure.</p>
+
+
     <h3 id="example-note">Note on examples</h3>
 
     <p>The examples in this SRFI are non-normative: if an example
@@ -440,7 +457,7 @@ SPDX-License-Identifier: MIT
       <pre class="example"><code>(set-&gt;list (set real-comparator 1 2 3))
   ⇒ (1 3 2) ; order unspecified
 
-(set-&gt;list (set real-comparator 'foo 'foo 'bar))
+(set-&gt;list (set eqv-comparator 'foo 'foo 'bar))
   ⇒ (foo bar) ; order unspecified</code></pre>
     </div>
 
@@ -984,13 +1001,13 @@ SPDX-License-Identifier: MIT
 
       <pre class="example"><code>(set-map symbol-&gt;string
          string-comparator
-         (set eqv? 'foo 'bar 'baz))
-  ⇒ (set string-comparator "foo" "bar" "baz")
+         (set eqv-comparator 'foo 'bar 'baz))
+  ≡ (set string-comparator "foo" "bar" "baz")
 
 (set-map (lambda (x) (quotient x 2))
-         integer-comparator
-         (set integer-comparator 1 2 3 4 5))
-  ⇒ (set integer-comparator 0 1 2)</code></pre>
+         real-comparator
+         (set real-comparator 1 2 3 4 5))
+  ≡ (set real-comparator 0 1 2)</code></pre>
 
     </div>
 
@@ -1327,7 +1344,7 @@ SPDX-License-Identifier: MIT
     <p>SRFI 128 comparator used to compare sets, which also
       allows sets of sets, etc. to be constructed.
       <code>Set-comparator</code> is required to provide at least
-      type-test, equality, and hash functions.
+      type-test and equality functions.
       It is an error to compare sets with
       different comparators (in the sense of <code>eqv?</code>).</p>
 
@@ -2348,14 +2365,14 @@ SPDX-License-Identifier: MIT
       <h5>Examples</h5>
 
       <pre class="example"><code>(bag-&gt;list
- (bag-intersection (bag real-comparator 1 2 3 3 3)
-                   (bag real-comparator 2 2 4 3)))
+ (bag-difference (bag real-comparator 1 2 3 3 3)
+                 (bag real-comparator 2 2 4 3)))
   ⇒ (1 3 3)  ; order unspecified
 
 (bag-&gt;list
- (bag-intersection (bag real-comparator 1 2 3 3 3)
-                   (bag real-comparator 2 2 4 3)
-                   (bag real-comparator 3 3)))
+ (bag-difference (bag real-comparator 1 2 3 3 3)
+                 (bag real-comparator 2 2 4 3)
+                 (bag real-comparator 3 3)))
   ⇒ (1)</code></pre>
     </div>
 
@@ -2406,7 +2423,7 @@ SPDX-License-Identifier: MIT
     <p>SRFI 128 comparator used to compare bags, which also
       allows sets of bags, etc. to be constructed.
       <code>Bag-comparator</code> is required to provide at least
-      type-test, equality, and hash functions.
+      type-test and equality functions.
       It is an error to compare bags with
       different comparators (in the sense of <code>eqv?</code>).</p>
 
