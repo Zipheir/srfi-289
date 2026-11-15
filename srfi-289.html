@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
   <head>
     <meta charset="utf-8">
     <style type="text/css">
-      <!--
       /* Paragraphs describing restrictions on procedure arguments. */
       p.arg-restrict { font-size: 80%; }
 
@@ -42,7 +41,6 @@ SPDX-License-Identifier: MIT
       /* A subscript is part of a variable name, but it shouldn't
          be italicized. */
       var sub { font-style: normal; }
-      -->
     </style>
     <title>SRFI 289: Unordered sets and bags</title>
     <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
@@ -982,7 +980,7 @@ SPDX-License-Identifier: MIT
         as if by <code>(set <var>comparator</var>)</code>, which
         contains the results of the applications.</p>
 
-      <h5>Examples</h5>
+      <h4>Examples</h4>
 
       <pre class="example"><code>(set-map symbol-&gt;string
          string-comparator
@@ -1871,7 +1869,7 @@ SPDX-License-Identifier: MIT
         as if by <code>(bag <var>comparator</var>)</code>, which
         contains the results of the applications.</p>
 
-      <h5>Example</h5>
+      <h4>Example</h4>
 
       <pre class="example"><code>(bag-&gt;list
  (bag-map abs (bag real-comparator -2 -1 0 1 2)))
