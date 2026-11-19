@@ -56,6 +56,7 @@
 
    (define (bag-contains? bag el)
      (hashmap-contains? (bag-m bag) el))
+
    (define (bag-empty? bag)
      (hashmap-empty? (bag-m bag)))
 
@@ -151,6 +152,7 @@
 
    (define (bag-delete s . els)
      (bag-delete-all s els))
+
    (define (bag-delete! s . els)
      (bag-delete-all! s els))
 
@@ -325,6 +327,7 @@
 
    (define (bag-remove predicate bag)
      (bag-filter (lambda (x) (not (predicate x))) bag))
+
    (define (bag-remove! predicate bag)
      (bag-filter! (lambda (x) (not (predicate x))) bag))
 
@@ -351,8 +354,10 @@
 
    (define (bag->list bag)
      (bag-fold cons '() bag))
+
    (define (list->bag comparator lst)
      (bag-unfold null? car cdr lst comparator))
+
    (define (list->bag! bag lst)
      (bag-adjoin-all! bag lst))
 
@@ -439,6 +444,7 @@
                         (bag-increment next-bag el count))
                       bag2
                       bag1))
+
    (define bag-sum (variadic-bag-operation bag-sum*))
 
    (define (bag-sum*! bag1 bag2)
@@ -446,6 +452,7 @@
                         (bag-increment! next-bag el count))
                       bag2
                       bag1))
+
    (define bag-sum! (variadic-bag-operation bag-sum*!))
 
    (define (hashmap-sum hashmap)
@@ -521,6 +528,7 @@
              (hashmap-delete first-m el))))
      (define new-hashmap (bag-fold-unique kons (bag-m bag1) bag2))
      (%bag new-hashmap))
+
    (define bag-difference (variadic-bag-operation bag-difference2))
 
    (define (bag-difference2! bag1 bag2)

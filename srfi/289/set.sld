@@ -35,8 +35,10 @@
 
    (define (set-contains? set el)
      (hashmap-contains? (%m set) el))
+
    (define (set-empty? set)
      (hashmap-empty? (%m set)))
+
    (define (set-disjoint? s1 s2)
      (hashmap-disjoint? (%m s1) (%m s2)))
 
@@ -73,6 +75,7 @@
 
    (define (set-replace s el)
      (%set (hashmap-replace (%m s) el el)))
+
    (define (set-replace! s el)
      (set-m! s (hashmap-replace! (%m s) el el))
      s)
@@ -86,6 +89,7 @@
 
    (define (set-delete s . els)
      (set-delete-all s els))
+
    (define (set-delete! s . els)
      (set-delete-all! s els))
 
@@ -191,10 +195,13 @@
 
    (define (set-copy set)
      (%set (hashmap-copy (%m set))))
+
    (define (set->list set)
      (hashmap-keys (%m set)))
+
    (define (list->set comparator lst)
      (set-unfold null? car cdr lst comparator))
+
    (define (list->set! set lst)
      (set-adjoin-all! set lst))
 
@@ -209,10 +216,13 @@
 
    (define set<?
      (variadic-comparison anything-comparator %m hashmap<?))
+
    (define set>?
      (variadic-comparison anything-comparator %m hashmap>?))
+
    (define set>=?
      (variadic-comparison anything-comparator %m hashmap>=?))
+
    (define set<=?
      (variadic-comparison anything-comparator %m hashmap<=?))
 
@@ -225,8 +235,10 @@
                (loop (op acc s) (cdr rest)))))))
 
    (define set-union (variadic-set-operation hashmap-union))
+
    (define set-intersection
      (variadic-set-operation hashmap-intersection))
+
    (define set-difference (variadic-set-operation hashmap-difference))
 
    (define (set-xor s1 s2)
@@ -246,8 +258,10 @@
                (loop (op! acc s) (cdr rest)))))))
 
    (define set-union! (linear-variadic-set-operation hashmap-union!))
+
    (define set-intersection!
      (linear-variadic-set-operation hashmap-intersection!))
+
    (define set-difference!
      (linear-variadic-set-operation hashmap-difference!))
 
