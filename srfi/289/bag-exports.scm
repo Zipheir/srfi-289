@@ -21,5 +21,5 @@
         bag-unique-size bag-element-count bag-for-each-unique
         bag-fold-unique
         bag-increment bag-decrement
-        bag-increment! bag-decrement! bag->set set->bag set->bag!
+        bag-increment! bag-decrement! bag->set set->bag
         bag->alist alist->bag)

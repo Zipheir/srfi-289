@@ -247,6 +247,14 @@ SPDX-License-Identifier: MIT
           I prefer the aliases <code>set-adjoin-all!</code> and
           <code>bag-adjoin-all!</code>.</p>
       </dd>
+
+      <dt><code>set-&gt;bag!</code></dt>
+      <dd>
+        <p>A rather obscure operation that is easily implemented with
+          <a href="#set-fold"><code>set-fold</code></a> and
+          <a href="#bag-adjoin-bang"><code>bag-adjoin!</code></a>,
+          if it is ever needed.</p>
+      </dd>
     </dl>
 
     <h3 id="why-bother">Why bother?</h3>
@@ -1872,24 +1880,6 @@ SPDX-License-Identifier: MIT
       <pre class="example"><code>(bag-&gt;list
  (set-&gt;bag (set real-comparator 1 2 3)))
   ⇒ (1 2 3)  ; order unspecified</code></pre>
-    </div>
-
-    <div class="proc-spec" id="set-to-bag-bang">
-      <p><code>(set-&gt;bag! <var>bag</var> <var>set</var>)</code>
-        → bag</p>
-
-      <p>Returns a bag using the same comparator as
-        <var>bag</var> and containing the same elements, in addition
-        to each element of <var>set</var>.  <code>set-&gt;bag!</code>
-        is permitted, but not required, to mutate <var>bag</var> to
-        produce its result.</p>
-
-      <h5>Example</h5>
-
-      <pre class="example"><code>(bag-&gt;list
- (set-&gt;bag! (bag real-comparator 1 2 2)
-            (set real-comparator 2 3 4)))
-  ⇒ (1 2 3 2 4 2)  ; order unspecified</code></pre>
     </div>
 
     <div class="proc-spec" id="bag-to-alist">

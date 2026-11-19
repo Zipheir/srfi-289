@@ -559,12 +559,6 @@
                         (set-element-comparator set)
                         (%m set))))
 
-   (define (set->bag! bag set)
-     (set-fold (lambda (el bag)
-                 (bag-adjoin! bag el))
-               bag
-               set))
-
    (define (bag->alist bag)
      (hashmap->alist (bag-m bag)))
 

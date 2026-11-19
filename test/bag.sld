@@ -917,20 +917,6 @@
            (bag=? (bag intc 1 2 3 4)
                   (set->bag (set intc 3 2 1 4)))))
 
-       (test-group "set->bag!"
-         (test-assert "add empty set"
-           (bag-empty? (set->bag! (bag intc) (set intc))))
-         (test-eqv "bag comparator is eqv? to original"
-           intc
-           (bag-element-comparator
-            (set->bag! (bag intc) (set intc))))
-         (test-assert "add nonempty set to empty bag"
-           (bag=? (bag intc 1 2 3 4)
-                  (set->bag! (bag intc) (set intc 3 2 1 4))))
-         (test-assert "add nonempty set to empty bag"
-           (bag=? (bag intc 1 2 3 4 5 5 6)
-                  (set->bag! (bag intc 5 5 6) (set intc 3 2 1 4)))))
-
        (test-group "bag->alist"
          (test-eqv "empty bag"
            '()
