@@ -460,20 +460,20 @@
                    hashmap))
 
    (define (bag-union2 bag1 bag2)
-     (define new-hashmap
+     (%bag
        (bag-fold-unique
         (lambda (el count hm)
           (hashmap-set hm
                        el
                        (max count (hashmap-ref/default hm el 0))))
         (bag-m bag1)
-        bag2))
-     (%bag new-hashmap))
+        bag2)))
 
    (define bag-union (variadic-bag-operation bag-union2))
 
    (define (bag-union2! bag1 bag2)
-     (define new-hashmap
+     (bag-set-m!
+       bag1
        (bag-fold-unique
         (lambda (el count hm)
           (hashmap-set! hm
@@ -481,40 +481,38 @@
                         (max count (hashmap-ref/default hm el 0))))
         (bag-m bag1)
         bag2))
-     (bag-set-m! bag1 new-hashmap)
      bag1)
 
    (define bag-union! (variadic-bag-operation bag-union2!))
 
    (define (bag-intersection2 bag1 bag2)
-     (define hmap2 (bag-m bag2))
-     (define new-hashmap
-       (bag-fold-unique
-        (lambda (el c1 hm)
-          (hashmap-ref hmap2
-                       el
-                       (lambda () hm)
-                       (lambda (c2)
-                         (hashmap-adjoin hm el (min c1 c2)))))
-        (hashmap (bag-element-comparator bag1))
-        bag1))
-     (%bag new-hashmap))
+     (let ((hmap2 (bag-m bag2)))
+       (%bag
+         (bag-fold-unique
+          (lambda (el c1 hm)
+            (hashmap-ref hmap2
+                         el
+                         (lambda () hm)
+                         (lambda (c2)
+                           (hashmap-adjoin hm el (min c1 c2)))))
+          (hashmap (bag-element-comparator bag1))
+          bag1))))
 
    (define bag-intersection (variadic-bag-operation bag-intersection2))
 
    (define (bag-intersection2! bag1 bag2)
-     (define hmap2 (bag-m bag2))
-     (define new-hashmap
-       (bag-fold-unique
-        (lambda (el c1 hm)
-          (hashmap-ref hmap2
-                       el
-                       (lambda () hm)
-                       (lambda (c2)
-                         (hashmap-adjoin! hm el (min c1 c2)))))
-        (hashmap (bag-element-comparator bag1))
-        bag1))
-     (bag-set-m! bag1 new-hashmap)
+     (let ((hmap2 (bag-m bag2)))
+       (bag-set-m!
+         bag1
+         (bag-fold-unique
+          (lambda (el c1 hm)
+            (hashmap-ref hmap2
+                         el
+                         (lambda () hm)
+                         (lambda (c2)
+                           (hashmap-adjoin! hm el (min c1 c2)))))
+          (hashmap (bag-element-comparator bag1))
+          bag1)))
      bag1)
 
    (define bag-intersection! (variadic-bag-operation bag-intersection2!))
@@ -526,8 +524,7 @@
          (if (positive? new)
              (hashmap-set first-m el new)
              (hashmap-delete first-m el))))
-     (define new-hashmap (bag-fold-unique kons (bag-m bag1) bag2))
-     (%bag new-hashmap))
+     (%bag (bag-fold-unique kons (bag-m bag1) bag2)))
 
    (define bag-difference (variadic-bag-operation bag-difference2))
 
@@ -538,14 +535,13 @@
          (if (positive? new)
              (hashmap-set! first-m el new)
              (hashmap-delete! first-m el))))
-     (define new-hashmap (bag-fold-unique kons (bag-m bag1) bag2))
-     (bag-set-m! bag1 new-hashmap)
+     (bag-set-m! bag1 (bag-fold-unique kons (bag-m bag1) bag2))
      bag1)
 
    (define bag-difference! (variadic-bag-operation bag-difference2!))
 
    (define (bag-xor bag1 bag2)
-     (define new-hashmap
+     (%bag
        (bag-fold-unique
         (lambda (el count hm)
           (let* ((previous (hashmap-ref/default hm el 0))
@@ -554,11 +550,11 @@
                 (hashmap-delete hm el)
                 (hashmap-set hm el current))))
         (bag-m bag2)
-        bag1))
-     (%bag new-hashmap))
+        bag1)))
 
    (define (bag-xor! bag1 bag2)
-     (define new-hashmap
+     (bag-set-m!
+      bag1
        (bag-fold-unique
         (lambda (el count hm)
           (let* ((previous (hashmap-ref/default hm el 0))
@@ -568,7 +564,6 @@
                 (hashmap-set! hm el current))))
         (bag-m bag2)
         bag1))
-     (bag-set-m! bag1 new-hashmap)
      bag1)
 
    (define bag-comparator
