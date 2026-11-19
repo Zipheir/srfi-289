@@ -78,33 +78,27 @@
    (define (bag-adjoin! bag . els)
      (bag-adjoin-all! bag els))
 
-   (define (bag-adjoin-all! bag els)
-     (let loop ((m (bag-m bag))
-                (els els))
-       (if (null? els)
-           (begin
-             (bag-set-m! bag m)
-             bag)
-           (let* ((el (car els))
-                  (m (hashmap-update!/default
-                      m
-                      el
-                      (lambda (x) (+ x 1))
-                      0)))
-             (loop m (cdr els))))))
-
    (define (bag-adjoin-all bag els)
-     (let loop ((m (bag-m bag))
-                (els els))
-       (if (null? els)
-           (%bag m)
-           (let* ((el (car els))
-                  (m (hashmap-update/default
-                      m
-                      el
-                      (lambda (x) (+ x 1))
-                      0)))
-             (loop m (cdr els))))))
+     (%bag
+      (fold (lambda (el hmap)
+              (hashmap-update/default hmap
+                                      el
+                                      (lambda (x) (+ x 1))
+                                      0))
+            (bag-m bag)
+            els)))
+
+   (define (bag-adjoin-all! bag els)
+     (bag-set-m!
+      bag
+      (fold (lambda (el hmap)
+              (hashmap-update!/default hmap
+                                       el
+                                       (lambda (x) (+ x 1))
+                                       0))
+            (bag-m bag)
+            els))
+     bag)
 
    (define (bag-replace bag el)
      (%bag
@@ -603,11 +597,15 @@
      (hashmap->alist (bag-m bag)))
 
    (define (alist->bag comparator alist)
-     (let loop ((bag (bag comparator))
-                (alist alist))
-       (if (null? alist)
-           bag
-           (let ((pair (car alist)))
-             (loop (bag-increment bag (car pair) (cdr pair))
-                   (cdr alist))))))
+     (%bag
+      (fold (lambda (p hmap)
+              (let ((c (cdr p)))
+                (unless (and (integer? c)
+                             (exact? c)
+                             (positive? c))
+                  (error "invalid element count" c))
+                  (hashmap-set hmap (car p) c)))
+            (hashmap comparator)
+            alist)))
+
    ))
