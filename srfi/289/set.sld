@@ -42,10 +42,6 @@
    (define (set-disjoint? s1 s2)
      (hashmap-disjoint? (%m s1) (%m s2)))
 
-   (define (set-member set element default)
-     (hashmap-ref/default (%m set)
-                          element
-                          default))
    (define (set-element-comparator set)
      (hashmap-key-comparator (%m set)))
 
@@ -73,13 +69,6 @@
            (loop (hashmap-adjoin m (car els) (car els))
                  (cdr els)))))
 
-   (define (set-replace s el)
-     (%set (hashmap-replace (%m s) el el)))
-
-   (define (set-replace! s el)
-     (set-m! s (hashmap-replace! (%m s) el el))
-     s)
-
    (define (set-delete-all s elements)
      (%set (hashmap-delete-all (%m s) elements)))
 
@@ -92,25 +81,6 @@
 
    (define (set-delete! s . els)
      (set-delete-all! s els))
-
-   ;; We should use hashmap-search! here, but Gauche's version of that
-   ;; procedure is currently buggy.  This is a slightly inefficient
-   ;; emulation.
-   (define (set-search! set el failure success)
-     (if (set-contains? set el)
-         ;; Yet another awkward detail of set-search!: if you find
-         ;; el, you've got change the set, even if it's just to
-         ;; re-add the same element.
-         (let ((set-no-el (set-delete! set el)))
-           (success el
-                    (lambda (new x) ; update
-                      (values (set-adjoin! set-no-el new) x))
-                    (lambda (x) ; remove
-                      (values set-no-el x))))
-         (failure (lambda (x) ; insert
-                    (values (set-adjoin! set el) x))
-                  (lambda (x) ; ignore
-                    (values set x)))))
 
    (define (set-pop set)
      (when (set-empty? set)
@@ -201,9 +171,6 @@
 
    (define (list->set comparator lst)
      (set-unfold null? car cdr lst comparator))
-
-   (define (list->set! set lst)
-     (set-adjoin-all! set lst))
 
    (define anything-comparator
      (make-comparator (lambda (x) #t)

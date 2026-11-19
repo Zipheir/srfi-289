@@ -63,12 +63,6 @@
    (define (bag-disjoint? bag1 bag2)
      (hashmap-disjoint? (bag-m bag1) (bag-m bag2)))
 
-   (define (bag-member bag element default)
-     (hashmap-ref (bag-m bag)
-                  element
-                  (lambda () default)
-                  (lambda (_c) element)))
-
    (define (bag-element-comparator bag)
      (hashmap-key-comparator (bag-m bag)))
 
@@ -149,25 +143,6 @@
 
    (define (bag-delete! s . els)
      (bag-delete-all! s els))
-
-   ;; We should use hashmap-search! here, but Gauche's version of that
-   ;; procedure is currently buggy.  This is a slightly inefficient
-   ;; emulation.
-   (define (bag-search! bag el failure success)
-     (if (bag-contains? bag el)
-         ;; Yet another awkward detail of bag-search!: if you find
-         ;; el, you've got change the bag, even if it's just to
-         ;; re-add the same element.
-         (let ((bag-el-minus (bag-delete! bag el)))
-           (success el
-                    (lambda (new x) ; update
-                      (values (bag-adjoin! bag-el-minus new) x))
-                    (lambda (x) ; remove
-                      (values bag-el-minus x))))
-         (failure (lambda (x) ; insert
-                    (values (bag-adjoin! bag el) x))
-                  (lambda (x) ; ignore
-                    (values bag x)))))
 
    ;; (Ab)use bag-for-each to get a single arbitrary element.
    (define (bag-pick bag)
@@ -351,9 +326,6 @@
 
    (define (list->bag comparator lst)
      (bag-unfold null? car cdr lst comparator))
-
-   (define (list->bag! bag lst)
-     (bag-adjoin-all! bag lst))
 
    (define exact-integer-comparator
      (make-comparator exact-integer? = #f #f))

@@ -99,17 +99,6 @@
            (not (bag-disjoint? (bag intc 1 1 2) (bag intc 2 3 3))))))
 
      (test-group "Accessors"
-       ;; Don't bother testing that we get the same (in the sense of
-       ;; eqv?) element out of the bag, since it's not guaranteed
-       ;; with this type.
-       (test-group "bag-member"
-         (test-eqv "element present"
-           2
-           (bag-member (bag intc 2 5 5 6) 2 'z))
-         (test-eqv "element absent"
-           'z
-           (bag-member (bag intc 2 5 5 6) 1 'z)))
-
        ;; This might possibly fail on Gauche, which doesn't always
        ;; preserve hashmap comparator equivalence.
        (test-eqv "result is eqv? to bag's comparator"
@@ -205,48 +194,6 @@
          (test-assert "some elements present, some absent"
            (bag=? (bag intc 1 2 3 4 4)
                   (bag-delete-all! (bag intc 1 2 3 4 4 4) '(4 5)))))
-
-       (test-group "bag-search!"
-         (test-assert "insert"
-           (let-values (((s x)
-                         (bag-search! (bag intc 1 2 3 3)
-                                      4
-                                      (lambda (insert _ig)
-                                        (insert 'z))
-                                      (lambda (_el update _rem)
-                                        (update 4 #t)))))
-             (and (bag=? s (bag intc 1 2 3 3 4))
-                  (eqv? x 'z))))
-         (test-assert "ignore"
-           (let-values (((s x)
-                         (bag-search! (bag intc 1 2 3 3)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore 'z))
-                                      (lambda (_el _up remove)
-                                        (remove #t)))))
-             (and (bag=? s (bag intc 1 2 3 3))
-                  (eqv? x 'z))))
-         (test-assert "replace"
-           (let-values (((s x)
-                         (bag-search! (bag intc 1 2 3 3 4)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore #t))
-                                      (lambda (_el update _rem)
-                                        (update 5 'z)))))
-             (and (bag=? s (bag intc 1 2 3 3 5))
-                  (eqv? x 'z))))
-         (test-assert "remove"
-           (let-values (((s x)
-                         (bag-search! (bag intc 1 2 3 3 4)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore #t))
-                                      (lambda (_el _up remove)
-                                        (remove 'z)))))
-             (and (bag=? s (bag intc 1 2 3 3))
-                  (eqv? x 'z)))))
 
        (test-assert "bag-pop"
          (let*-values (((els) '(1 1 2 3 3 4))
@@ -444,15 +391,7 @@
            (bag-empty? (list->bag intc '())))
          (test-assert "nonempty"
            (bag=? (bag intc 1 2 3 4)
-                  (list->bag intc '(1 2 3 4)))))
-
-       (test-group "bag->list!"
-         (test-assert "no elements added"
-           (bag=? (bag intc 1 2 3 4)
-                  (list->bag! (bag intc 1 2 3 4) '())))
-         (test-assert "elements added"
-           (bag=? (bag intc 1 2 3 4 5 6)
-                  (list->bag! (bag intc 1 2 3 4) '(5 6))))))
+                  (list->bag intc '(1 2 3 4))))))
 
      (test-group "Comparison"
        (test-group "bag=?"
