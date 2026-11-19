@@ -439,27 +439,27 @@
              bag1
              (loop (op bag1 (car rest)) (cdr rest))))))
 
-   (define (bag-sum* bag1 bag2)
+   (define (bag-sum2 bag1 bag2)
      (bag-fold-unique (lambda (el count next-bag)
                         (bag-increment next-bag el count))
                       bag2
                       bag1))
 
-   (define bag-sum (variadic-bag-operation bag-sum*))
+   (define bag-sum (variadic-bag-operation bag-sum2))
 
-   (define (bag-sum*! bag1 bag2)
+   (define (bag-sum2! bag1 bag2)
      (bag-fold-unique (lambda (el count next-bag)
                         (bag-increment! next-bag el count))
                       bag2
                       bag1))
 
-   (define bag-sum! (variadic-bag-operation bag-sum*!))
+   (define bag-sum! (variadic-bag-operation bag-sum2!))
 
    (define (hashmap-sum hashmap)
      (hashmap-fold (lambda (ignored count total) (+ count total))
                    hashmap))
 
-   (define (bag-union* bag1 bag2)
+   (define (bag-union2 bag1 bag2)
      (define new-hashmap
        (bag-fold-unique
         (lambda (el count hm)
@@ -470,7 +470,7 @@
         bag2))
      (%bag new-hashmap))
 
-   (define bag-union (variadic-bag-operation bag-union*))
+   (define bag-union (variadic-bag-operation bag-union2))
 
    (define (bag-union2! bag1 bag2)
      (define new-hashmap
