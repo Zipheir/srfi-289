@@ -15,6 +15,11 @@
                                set-fold)
           )
   (begin
+   ;;; A bag is represented by a hashmap which associates each element
+   ;;; with its count.  The count is always positive.  Whenever an
+   ;;; element's count would be reduced to zero, its association is
+   ;;; removed from the hashmap.
+
    (define-record-type <bag>
      (%bag hashmap)
      bag?
