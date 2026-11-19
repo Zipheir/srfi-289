@@ -2132,8 +2132,8 @@ SPDX-License-Identifier: MIT
 
       <p class="arg-restrict">Each element of <var>alist</var> must
         be a pair whose car satisfies <var>comparator</var>’s type-test
-        predicate and whose cdr is a non-negative exact integer.
-        Otherwise, it is an error.</p>
+        predicate and whose cdr is a non-negative exact integer.  Each
+        pair of <var>alist</var> must specify a unique element.</p>
 
       <p>Returns a newly allocated bag using <var>comparator</var>,
         where the keys of <var>alist</var> specify the elements and
