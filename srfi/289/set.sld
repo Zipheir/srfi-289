@@ -204,27 +204,17 @@
                       #f
                       #f))
 
-   (define set=? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap=?))
+   (define set=?
+     (variadic-comparison anything-comparator %m hashmap=?))
 
-   (define set<? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap<?))
-   (define set>? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap>?))
-   (define set>=? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap>=?))
-   (define set<=? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap<=?))
+   (define set<?
+     (variadic-comparison anything-comparator %m hashmap<?))
+   (define set>?
+     (variadic-comparison anything-comparator %m hashmap>?))
+   (define set>=?
+     (variadic-comparison anything-comparator %m hashmap>=?))
+   (define set<=?
+     (variadic-comparison anything-comparator %m hashmap<=?))
 
    (define (variadic-set-operation op)
      (lambda (s1 . rest)
@@ -250,8 +240,8 @@
        (let loop ((acc (%m s1)) (rest rest))
          (if (null? rest)
              (begin
-               (set-m! s1 acc)
-               s1)
+              (set-m! s1 acc)
+              s1)
              (let ((s (%m (car rest))))
                (loop (op! acc s) (cdr rest)))))))
 
@@ -268,7 +258,7 @@
       #f
       (lambda (x)
         (let ((hash (comparator-hash-function
-              (set-element-comparator x))))
+                     (set-element-comparator x))))
           (set-fold (lambda (el previous-hash)
                       (+ (bitwise-xor (hash el) previous-hash) 1))
                     0
