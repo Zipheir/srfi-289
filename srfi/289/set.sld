@@ -21,7 +21,7 @@
                       els
                       comparator)))
 
-   (define (%set-unfold comparator stop? mapper successor seed)
+   (define (set-unfold stop? mapper successor seed comparator)
      (unless (comparator? comparator)
        (error "Not a comparator" comparator))
      (%set
@@ -32,11 +32,6 @@
                       successor
                       seed
                       comparator)))
-
-   (define (set-unfold a1 a2 a3 a4 a5)
-     (if (comparator? a1)
-         (%set-unfold a1 a2 a3 a4 a5)
-         (%set-unfold a5 a1 a2 a3 a4)))
 
    (define (set-contains? set el)
      (hashmap-contains? (%m set) el))
@@ -199,7 +194,7 @@
    (define (set->list set)
      (hashmap-keys (%m set)))
    (define (list->set comparator lst)
-     (%set-unfold comparator null? car cdr lst))
+     (set-unfold null? car cdr lst comparator))
    (define (list->set! set lst)
      (set-adjoin-all! set lst))
 

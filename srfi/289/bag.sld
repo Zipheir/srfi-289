@@ -32,7 +32,7 @@
    (define (bag-fold-unique proc nil bag)
      (hashmap-fold proc nil (bag-m bag)))
 
-   (define (%bag-unfold comparator stop? mapper successor seed)
+   (define (bag-unfold stop? mapper successor seed comparator)
      (unless (comparator? comparator)
        (error "Not a comparator" comparator))
      (let loop ((m (hashmap comparator)) (seed seed))
@@ -46,13 +46,8 @@
                       0)))
              (loop m (successor seed))))))
 
-   (define (bag-unfold a1 a2 a3 a4 a5)
-     (if (comparator? a1)
-         (%bag-unfold a1 a2 a3 a4 a5)
-         (%bag-unfold a5 a1 a2 a3 a4)))
-
    (define (bag comparator . els)
-     (%bag-unfold comparator null? car cdr els))
+     (bag-unfold null? car cdr els comparator))
 
    (define (bag-contains? bag el)
      (hashmap-contains? (bag-m bag) el))
@@ -352,7 +347,7 @@
    (define (bag->list bag)
      (bag-fold cons '() bag))
    (define (list->bag comparator lst)
-     (%bag-unfold comparator null? car cdr lst))
+     (bag-unfold null? car cdr lst comparator))
    (define (list->bag! bag lst)
      (bag-adjoin-all! bag lst))
 
