@@ -460,7 +460,7 @@
 
    (define bag-union (variadic-bag-operation bag-union*))
 
-   (define (bag-union*! bag1 bag2)
+   (define (bag-union2! bag1 bag2)
      (define new-hashmap
        (bag-fold-unique
         (lambda (el count hm)
@@ -472,9 +472,9 @@
      (bag-set-m! bag1 new-hashmap)
      bag1)
 
-   (define bag-union! (variadic-bag-operation bag-union*!))
+   (define bag-union! (variadic-bag-operation bag-union2!))
 
-   (define (bag-intersection* bag1 bag2)
+   (define (bag-intersection2 bag1 bag2)
      (define hmap2 (bag-m bag2))
      (define new-hashmap
        (bag-fold-unique
@@ -488,9 +488,9 @@
         bag1))
      (%bag new-hashmap))
 
-   (define bag-intersection (variadic-bag-operation bag-intersection*))
+   (define bag-intersection (variadic-bag-operation bag-intersection2))
 
-   (define (bag-intersection*! bag1 bag2)
+   (define (bag-intersection2! bag1 bag2)
      (define hmap2 (bag-m bag2))
      (define new-hashmap
        (bag-fold-unique
@@ -505,9 +505,9 @@
      (bag-set-m! bag1 new-hashmap)
      bag1)
 
-   (define bag-intersection! (variadic-bag-operation bag-intersection*!))
+   (define bag-intersection! (variadic-bag-operation bag-intersection2!))
 
-   (define (bag-difference* bag1 bag2)
+   (define (bag-difference2 bag1 bag2)
      (define (kons el second-count first-m)
        (let* ((current (hashmap-ref/default first-m el 0))
               (new (- current second-count)))
@@ -516,9 +516,9 @@
              (hashmap-delete first-m el))))
      (define new-hashmap (bag-fold-unique kons (bag-m bag1) bag2))
      (%bag new-hashmap))
-   (define bag-difference (variadic-bag-operation bag-difference*))
+   (define bag-difference (variadic-bag-operation bag-difference2))
 
-   (define (bag-difference*! bag1 bag2)
+   (define (bag-difference2! bag1 bag2)
      (define (kons el second-count first-m)
        (let* ((current (hashmap-ref/default first-m el 0))
               (new (- current second-count)))
@@ -529,7 +529,7 @@
      (bag-set-m! bag1 new-hashmap)
      bag1)
 
-   (define bag-difference! (variadic-bag-operation bag-difference*!))
+   (define bag-difference! (variadic-bag-operation bag-difference2!))
 
    (define (bag-xor bag1 bag2)
      (define new-hashmap
