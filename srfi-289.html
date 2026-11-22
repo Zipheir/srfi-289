@@ -512,6 +512,12 @@ SPDX-License-Identifier: MIT
              0
              string-comparator))
   ⇒ ("a" "aaa" "aa" "") ; order unspecified</code></pre>
+      <div class="note">
+        <h5>Note</h5>
+
+        <p>The argument order of this procedure differs from that of
+          the SRFI 113 form of the same name.</p>
+      </div>
     </div>
 
     <div class="proc-spec" id="set-accumulate">
@@ -910,6 +916,12 @@ SPDX-License-Identifier: MIT
          (set real-comparator 1 2 3 4 5))
   ≡ (set real-comparator 0 1 2)</code></pre>
 
+      <div class="note">
+        <h5>Note</h5>
+
+        <p>The argument order of this procedure differs from that of
+          the SRFI 113 form of the same name.</p>
+      </div>
     </div>
 
     <div class="proc-spec" id="set-for-each">
@@ -1333,6 +1345,13 @@ SPDX-License-Identifier: MIT
              -2
              real-comparator))
   ⇒ (2 1 0 2 1) ; order unspecified</code></pre>
+
+      <div class="note">
+        <h5>Note</h5>
+
+        <p>The argument order of this procedure differs from that of
+          the SRFI 113 form of the same name.</p>
+      </div>
     </div>
 
     <div class="proc-spec" id="bag-accumulate">
@@ -1722,6 +1741,13 @@ SPDX-License-Identifier: MIT
       <pre class="example"><code>(bag-&gt;list
  (bag-map abs (bag real-comparator -2 -1 0 1 2)))
   ⇒ (0 1 1 2 2)  ; order unspecified</code></pre>
+
+      <div class="note">
+        <h5>Note</h5>
+
+        <p>The argument order of this procedure differs from that of
+          the SRFI 113 form of the same name.</p>
+      </div>
     </div>
 
     <div class="proc-spec" id="bag-for-each">
