@@ -7,9 +7,6 @@ SPDX-License-Identifier: MIT
   <head>
     <meta charset="utf-8">
     <style type="text/css">
-      /* Paragraphs describing restrictions on procedure arguments. */
-      p.arg-restrict { font-size: 80%; }
-
       /* Quotation attributions. */
       p.attribution { text-align: right; }
 
@@ -34,6 +31,9 @@ SPDX-License-Identifier: MIT
       /* A subscript is part of a variable name, but it shouldn't
          be italicized. */
       var sub { font-style: normal; }
+
+      /* R6RS-style paragraph headings. */
+      span.par-head { font-style: italic; }
     </style>
     <title>SRFI 289: Unordered sets and bags</title>
     <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
@@ -442,8 +442,8 @@ SPDX-License-Identifier: MIT
       <p><code>(set <var>comparator</var> <var>element</var> …)</code> →
         set</p>
 
-      <p class="arg-restrict">It is an error if
-        any of the <var>element</var> arguments does not satisfy
+      <p><span class="par-head">Argument
+        restrictions:</span> Each <var>element</var> must satisfy
         <var>comparator</var>’s type-test predicate.</p>
 
       <p>Returns a newly allocated set using <var>comparator</var>
@@ -463,13 +463,13 @@ SPDX-License-Identifier: MIT
         <var>successor</var> <var>seed</var>
         <var>comparator</var>)</code> → set</p>
 
-      <p class="arg-restrict">
+      <p><span class="par-head">Argument restrictions:</span>
         <var>seed</var> may be any object.  <var>stop?</var> is a
         predicate taking a single value of <var>seed</var>’s type.
         <var>mapper</var> and <var>successor</var> are procedures taking
         a single value of <var>seed</var>’s type and returning a single
-        value.  It is an error if <var>mapper</var> returns a value
-        that does not satisfy <var>comparator</var>’s type-test
+        value.  <var>mapper</var> must return a value
+        that satisfies <var>comparator</var>’s type-test
         predicate.</p>
 
       <p>Returns a newly allocated set using <var>comparator</var>.
@@ -519,7 +519,7 @@ SPDX-License-Identifier: MIT
         <var>seed<sub>1</sub></var> <var>seed<sub>2</sub></var>
         …)</code> → set</p>
 
-      <p class="arg-restrict">
+      <p><span class="par-head">Argument restrictions:</span>
         The <var>seed</var>s may be any objects.  <var>proc</var> must
         accept <var>n</var> arguments, where <var>n</var> is the
         number of <var>seed</var>s, and return <var>n</var> + 1 values,
@@ -612,8 +612,9 @@ SPDX-License-Identifier: MIT
       <p><code>(set-disjoint? <var>set<sub>1</sub></var>
         <var>set<sub>2</sub></var>)</code> → boolean</p>
 
-      <p class="arg-restrict">It is an error if the comparator
-        of <var>set<sub>1</sub></var> is not the same (in the sense
+      <p><span class="par-head">Argument restrictions:</span>
+        The comparator
+        of <var>set<sub>1</sub></var> must be the same (in the sense
         of <code>eqv?</code>) as that of <var>set<sub>2</sub></var>.
       </p>
 
@@ -674,7 +675,8 @@ SPDX-License-Identifier: MIT
       <p><code>(set-adjoin-all <var>set</var> <var>list</var>)</code>
         → set</p>
 
-      <p class="arg-restrict">Every element of <var>list</var> must
+      <p><span class="par-head">Argument restrictions:</span>
+        Every element of <var>list</var> must
         satisfy <var>set</var>’s comparator’s type-test predicate.</p>
 
       <p>Returns a newly allocated set that uses the same comparator as
@@ -730,8 +732,9 @@ SPDX-License-Identifier: MIT
       <p><code>(set-delete-all <var>set</var>
         <var>list</var>)</code> → set</p>
 
-      <p class="arg-restrict">It is an error if any element of
-        <var>list</var> does not satisfy the type-test predicate of
+      <p><span class="par-head">Argument restrictions:</span>
+        Every element of
+        <var>list</var> must satisfy the type-test predicate of
         <var>set</var>’s comparator.</p>
 
       <p>Returns a newly allocated set containing all the elements of
@@ -760,9 +763,9 @@ SPDX-License-Identifier: MIT
       <p><code>(set-pop <var>set</var> [<var>failure</var>])</code>
         → obj …</p>
 
-      <p class="arg-restrict">If <var>failure</var> is provided, it
-        must be a procedure accepting zero arguments.  Otherwise, it
-        is an error.</p>
+      <p><span class="par-head">Argument restrictions:</span>
+        If <var>failure</var> is provided, it
+        must be a procedure accepting zero arguments.</p>
 
       <p>Chooses an arbitrary element <var>x</var> of <var>set</var>
         and returns two values: a newly allocated set using the same
@@ -884,7 +887,8 @@ SPDX-License-Identifier: MIT
       <p><code>(set-map <var>proc</var> <var>comparator</var>
         <var>set</var>)</code> → set</p>
 
-      <p class="arg-restrict"><var>Proc</var> must be a procedure
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>set</var>, and
         returning one value which must satisfy <var>comparator</var>’s
         type-test predicate.</p>
@@ -912,7 +916,8 @@ SPDX-License-Identifier: MIT
       <p><code>(set-for-each <var>proc</var> <var>set</var>)</code> →
         unspecified</p>
 
-      <p class="arg-restrict"><var>Proc</var> must be a procedure
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>set</var>.</p>
 
       <p>Applies <var>proc</var> to the elements of <var>set</var> in an
@@ -931,7 +936,8 @@ SPDX-License-Identifier: MIT
       <p><code>(set-fold <var>proc</var> <var>nil</var>
         <var>set</var>)</code> → obj</p>
 
-      <p class="arg-restrict"><var>Proc</var> must be a procedure
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Proc</var> must be a procedure
         accepting two arguments and returning a single value.
         <var>Nil</var> may be any Scheme object.</p>
 
@@ -1049,7 +1055,8 @@ SPDX-License-Identifier: MIT
       <p><code>(list-&gt;set <var>comparator</var>
         <var>list</var>)</code> → set</p>
 
-      <p class="arg-restrict">Every element of <var>list</var> must
+      <p><span class="par-head">Argument restrictions:</span>
+        Every element of <var>list</var> must
         satisfy <var>comparator</var>’s type-test predicate.</p>
 
       <p>Returns a newly allocated set using <var>comparator</var> and
@@ -1174,9 +1181,10 @@ SPDX-License-Identifier: MIT
       <p id="set-xor"><code>(set-xor <var>set<sub>1</sub></var>
         <var>set<sub>2</sub></var>)</code> → set</p>
 
-      <p class="arg-restrict">The <var>set</var> arguments must all
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>set</var> arguments must all
         use the same comparator (in the sense of <code>eqv?</code>).
-        Otherwise, it is an error.</p>
+      </p>
 
       <p>Return a newly allocated set that is the union, intersection,
         asymmetric difference, or symmetric difference of the
@@ -1264,13 +1272,13 @@ SPDX-License-Identifier: MIT
         <var>successor</var> <var>seed</var>
         <var>comparator</var>)</code> → bag</p>
 
-      <p class="arg-restrict">
+      <p><span class="par-head">Argument restrictions:</span>
         <var>seed</var> may be any object.  <var>stop?</var> is a
         predicate taking a single value of <var>seed</var>’s type.
         <var>mapper</var> and <var>successor</var> are procedures taking
         a single value of <var>seed</var>’s type and returning a single
-        value.  It is an error if <var>mapper</var> returns a value
-        that does not satisfy <var>comparator</var>’s type-test
+        value.  <var>mapper</var> must return a value
+        that satisfies <var>comparator</var>’s type-test
         predicate.</p>
 
       <p>Returns a newly allocated bag using <var>comparator</var>.
@@ -1320,7 +1328,7 @@ SPDX-License-Identifier: MIT
         <var>seed<sub>1</sub></var> <var>seed<sub>2</sub></var>
         …)</code> → bag</p>
 
-      <p class="arg-restrict">
+      <p><span class="par-head">Argument restrictions:</span>
         The <var>seed</var>s may be any objects.  <var>proc</var> must
         accept <var>n</var> arguments, where <var>n</var> is the
         number of <var>seed</var>s, and return <var>n</var> + 1 values,
@@ -1407,8 +1415,9 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-disjoint? <var>bag<sub>1</sub></var>
         <var>bag<sub>2</sub></var>)</code> → boolean</p>
 
-      <p class="arg-restrict">It is an error if the comparator
-        of <var>bag<sub>1</sub></var> is not the same (in the sense of
+      <p><span class="par-head">Argument restrictions:</span>
+        The comparator
+        of <var>bag<sub>1</sub></var> must be the same (in the sense of
         <code>eqv?</code>) as that of <var>bag<sub>2</sub></var>.</p>
 
       <p>Returns <code>#t</code> if <var>bag<sub>1</sub></var> and
@@ -1468,7 +1477,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-adjoin-all <var>bag</var> <var>list</var>)</code>
         → bag</p>
 
-      <p class="arg-restrict">Every element of <var>list</var> must
+      <p><span class="par-head">Argument restrictions:</span>
+        Every element of <var>list</var> must
         satisfy <var>bag</var>’s comparator’s type-test predicate.</p>
 
       <p>Returns a newly allocated bag that uses the same comparator as
@@ -1527,9 +1537,10 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-delete-all <var>bag</var>
         <var>list</var>)</code> → bag</p>
 
-      <p class="arg-restrict">Every element of <var>list</var>
+      <p><span class="par-head">Argument restrictions:</span>
+        Every element of <var>list</var>
         must satisfy the type-test predicate of <var>bag</var>’s
-        comparator.  Otherwise, it is an error.</p>
+        comparator.</p>
 
       <p>Returns a newly allocated bag containing all the elements of
         <var>bag</var> but with the elements of <var>list</var>
@@ -1562,7 +1573,7 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-pop <var>bag</var> [<var>failure</var>])</code>
         → obj …</p>
 
-      <p class="arg-restrict">If <var>failure</var> is provided, it
+      <p>If <var>failure</var> is provided, it
         must be a procedure accepting zero arguments.  Otherwise, it
         is an error.</p>
 
@@ -1683,7 +1694,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-map <var>proc</var> <var>comparator</var>
         <var>bag</var>)</code> → bag</p>
 
-      <p class="arg-restrict"><var>Proc</var> must be a procedure
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>bag</var>, and
         returning one value which must satisfy <var>comparator</var>’s
         type-test predicate.</p>
@@ -1704,7 +1716,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-for-each <var>proc</var> <var>bag</var>)</code> →
         unspecified</p>
 
-      <p class="arg-restrict"><var>Proc</var> must be a procedure
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>bag</var>.</p>
 
       <p>Applies <var>proc</var> to the elements of <var>bag</var> in an
@@ -1723,7 +1736,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-fold <var>proc</var> <var>nil</var>
         <var>bag</var>)</code> → obj</p>
 
-      <p class="arg-restrict"><var>Proc</var> must be a procedure
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Proc</var> must be a procedure
         accepting two arguments and returning a single value.
         <var>Nil</var> may be any Scheme object.</p>
 
@@ -1842,8 +1856,9 @@ SPDX-License-Identifier: MIT
       <p><code>(list-&gt;bag <var>comparator</var>
         <var>list</var>)</code> → bag</p>
 
-      <p class="arg-restrict">It is an error if any element of
-        <var>list</var> does not satisfy <var>comparator</var>’s
+      <p><span class="par-head">Argument restrictions:</span>
+        Every element of
+        <var>list</var> must satisfy <var>comparator</var>’s
         type-test predicate.</p>
 
       <p>Returns a newly allocated bag using <var>comparator</var> and
@@ -1901,7 +1916,8 @@ SPDX-License-Identifier: MIT
       <p><code>(alist-&gt;bag <var>comparator</var>
         <var>alist</var>)</code> → bag</p>
 
-      <p class="arg-restrict">Each element of <var>alist</var> must
+      <p><span class="par-head">Argument restrictions:</span>
+        Each element of <var>alist</var> must
         be a pair whose car satisfies <var>comparator</var>’s type-test
         predicate and whose cdr is a non-negative exact integer.  Each
         pair of <var>alist</var> must specify a unique element.</p>
@@ -2211,7 +2227,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-sum <var>bag<sub>1</sub></var>
         <var>bag<sub>2</sub></var> …)</code> → bag</p>
 
-      <p class="arg-restrict">The <var>bag</var> arguments must all
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var> arguments must all
         use the same comparator (in the sense of <code>eqv?</code>).</p>
 
       <p>Returns a newly allocated bag using the same comparator as
@@ -2243,7 +2260,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-product <var>k</var> <var>bag</var>)</code>
         → bag</p>
 
-      <p class="arg-restrict">It is an error if <var>k</var> is not
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>K</var> must be
         a non-negative exact integer.</p>
 
       <p>Returns a newly allocated bag using the same comparator as
@@ -2298,7 +2316,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-for-each-unique <var>proc</var>
         <var>bag</var>)</code> → unspecified</p>
 
-      <p class="arg-restrict"><var>Proc</var> must be a procedure
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Proc</var> must be a procedure
         accepting two arguments, an element of <var>bag</var> and
         an exact integer.</p>
 
@@ -2322,7 +2341,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-fold-unique <var>proc</var> <var>nil</var>
         <var>bag</var>)</code> → obj</p>
 
-      <p class="arg-restrict"><var>Proc</var> must be a procedure
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Proc</var> must be a procedure
         accepting three arguments and returning a single value.
         <var>Nil</var> may be any Scheme object.</p>
 
@@ -2347,7 +2367,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-increment <var>bag</var> <var>element</var>
         <var>k</var>)</code> → bag</p>
 
-      <p class="arg-restrict">It is an error if <var>k</var> is not a
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>K</var> must be a
         non-negative exact integer.</p>
 
       <p>Returns a newly allocated bag using the same comparator as
@@ -2375,7 +2396,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-decrement <var>bag</var> <var>element</var>
         <var>k</var>)</code> → bag</p>
 
-      <p class="arg-restrict">It is an error if <var>k</var> is not a
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>K</var> must be a
         non-negative exact integer.</p>
 
       <p>Returns a newly allocated bag using the same comparator as
