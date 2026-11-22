@@ -232,9 +232,11 @@
    (define set-difference!
      (linear-variadic-set-operation hashmap-difference!))
 
-   (define set-comparator
+   (define (make-set-comparator elt-comp)
      (make-comparator
-      set?
+      (lambda (x)
+        (and (set? x)
+             (eqv? (set-element-comparator x) elt-comp)))
       set=?
       #f
       (lambda (x)

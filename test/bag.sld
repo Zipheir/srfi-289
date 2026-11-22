@@ -723,12 +723,23 @@
                   (bag-xor! (bag intc 1 4 4 4 5 7)
                             (bag intc 1 4 5 5 6))))))
 
-     (test-group "bag-comparator"
-       (test-assert "is a SRFI 128 comparator"
-         (s128:comparator? bag-comparator))
-       (test-assert "type-test predicate is true on bags"
-         ((s128:comparator-type-test-predicate bag-comparator)
-          (bag intc 1 2 3))))
+     (test-group "make-bag-comparator"
+       (test-assert "returns a SRFI 128 comparator"
+         (s128:comparator? (make-bag-comparator intc)))
+
+       (test-assert
+         "type test is true on bags with matching comparators"
+         (let ((comp (make-bag-comparator intc)))
+           ((s128:comparator-type-test-predicate comp)
+            (bag intc 1 2 3))))
+
+       (test-assert "equality predicate (equal bags)"
+         (let ((comp (make-bag-comparator intc)))
+           (s128:=? comp (bag intc 1 2 2 3) (bag intc 3 1 2 2))))
+
+       (test-assert "equality predicate (unequal bags)"
+         (let ((comp (make-bag-comparator intc)))
+           (not (s128:=? comp (bag intc 1 2 3) (bag intc 3 3 1 2))))))
 
      (test-group "Bag sum & product"
        (test-group "bag-sum"

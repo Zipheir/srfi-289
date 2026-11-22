@@ -659,13 +659,22 @@
                   (set-xor! (set intc 1 4 5 7) (set intc 1 4 6)))))
        )
 
-     (test-group "set-comparator"
-       (test-assert "is a SRFI 128 comparator"
-         (s128:comparator? set-comparator))
-       (test-assert "type-test predicate is true on sets"
-         ((s128:comparator-type-test-predicate set-comparator)
-          (set intc 1 2 3)))
-       (test-assert "is hashable"
-         (s128:comparator-hashable? set-comparator)))
+     (test-group "make-set-comparator"
+       (test-assert "returns a SRFI 128 comparator"
+         (s128:comparator? (make-set-comparator intc)))
+
+       (test-assert
+         "type test is true on sets with matching comparators"
+         (let ((comp (make-set-comparator intc)))
+           ((s128:comparator-type-test-predicate comp)
+            (set intc 1 2 3))))
+
+       (test-assert "equality predicate (equal sets)"
+         (let ((comp (make-set-comparator intc)))
+           (s128:=? comp (set intc 1 2 3) (set intc 3 1 2))))
+
+       (test-assert "equality predicate (unequal sets)"
+         (let ((comp (make-set-comparator intc)))
+           (not (s128:=? comp (set intc 1 2 3) (set intc 4 1 2))))))
 
      (test-end))))

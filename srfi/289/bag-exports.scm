@@ -16,7 +16,7 @@
         bag=? bag<? bag>? bag<=? bag>=?
         bag-union bag-intersection bag-difference bag-xor
         bag-union! bag-intersection! bag-difference! bag-xor!
-        bag-comparator
+        make-bag-comparator
         bag-sum bag-sum! bag-product bag-product!
         bag-unique-size bag-element-count bag-for-each-unique
         bag-fold-unique

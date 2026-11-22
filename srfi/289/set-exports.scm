@@ -16,4 +16,5 @@
         set=? set<? set>? set<=? set>=?
         set-union set-intersection set-difference set-xor
         set-union! set-intersection! set-difference! set-xor!
-        set-comparator)
+        make-set-comparator
+        )

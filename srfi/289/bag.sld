@@ -532,8 +532,11 @@
        bag1))
      bag1)
 
-   (define bag-comparator
-     (make-comparator bag?
+   (define (make-bag-comparator elt-comp)
+     (make-comparator (lambda (x)
+                        (and (bag? x)
+                             (eqv? (bag-element-comparator x)
+                                   elt-comp)))
                       bag=?
                       #f
                       (lambda (x)

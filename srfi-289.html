@@ -103,7 +103,7 @@ SPDX-License-Identifier: MIT
               <li><a href="#set-copying-and-conversion">Copying &amp; conversion</a></li>
               <li><a href="#set-comparison">Comparison</a></li>
               <li><a href="#set-set-theory">Set theory operations</a></li>
-              <li><a href="#set-comparator">Comparator</a></li>
+              <li><a href="#set-comparators">Comparators</a></li>
             </ol>
           </li>
           <li>
@@ -120,7 +120,7 @@ SPDX-License-Identifier: MIT
               <li><a href="#bag-copying-and-conversion">Copying &amp; conversion</a></li>
               <li><a href="#bag-comparison">Comparison</a></li>
               <li><a href="#bag-set-theory">Set theory operations</a></li>
-              <li><a href="#bag-comparator">Comparator</a></li>
+              <li><a href="#bag-comparators">Comparators</a></li>
               <li><a href="#additional-bag-procs">Additional bag procedures</a></li>
             </ol>
           </li>
@@ -1255,16 +1255,18 @@ SPDX-License-Identifier: MIT
         results.</p>
     </div>
 
-    <h4 id="set-comparator">Comparator</h4>
+    <h4 id="set-comparators">Comparators</h4>
 
-    <p><code>set-comparator</code></p>
+    <div class="proc-spec">
+      <p><code>(make-set-comparator <var>comparator</var>)</code>
+        → comparator</p>
 
-    <p>SRFI 128 comparator used to compare sets, which also
-      allows sets of sets, etc. to be constructed.
-      <code>Set-comparator</code> is required to provide at least
-      type-test and equality functions.
-      It is an error to compare sets with
-      different comparators (in the sense of <code>eqv?</code>).</p>
+      <p>Returns a newly allocated SRFI 128 comparator used to compare
+        sets that use <var>comparator</var>.  This also
+        allows sets of sets, etc. to be constructed.
+        The returned comparator is required to provide at least
+        type-test and equality functions.</p>
+    </div>
 
 
     <h3 id="bag-procedures">Bag library</h3>
@@ -2279,16 +2281,18 @@ SPDX-License-Identifier: MIT
     </div>
 
 
-    <h4 id="bag-comparator">Comparator</h4>
+    <h4 id="bag-comparators">Comparators</h4>
 
-    <p><code>bag-comparator</code></p>
+    <div class="proc-spec">
+      <p><code>(make-bag-comparator <var>comparator</var>)</code>
+        → comparator</p>
 
-    <p>SRFI 128 comparator used to compare bags, which also
-      allows sets of bags, etc. to be constructed.
-      <code>Bag-comparator</code> is required to provide at least
-      type-test and equality functions.
-      It is an error to compare bags with
-      different comparators (in the sense of <code>eqv?</code>).</p>
+      <p>Returns a newly allocated SRFI 128 comparator used to compare
+        bags using <var>comparator</var>.  This also
+        allows sets of bags, etc. to be constructed.
+        The returned comparator is required to provide at least
+        type-test and equality functions.</p>
+    </div>
 
 
     <h4 id="additional-bag-procs">Additional bag procedures</h4>
