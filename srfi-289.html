@@ -1074,10 +1074,6 @@ SPDX-License-Identifier: MIT
 
     <h4 id="set-comparison">Comparison</h4>
 
-    <p>It is an error to pass sets to these predicates that do not
-      share the same comparator (in the sense of
-      <code>eqv?</code>).</p>
-
     <p>None of these predicates produces a total order on
       sets.  In particular, sets do not have the trichotomy property
       under <code>set=?</code>, <code>set&lt;?</code>,
@@ -1095,6 +1091,10 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="set-lessp">
       <p><code>(set&lt;? <var>set<sub>1</sub></var>
         <var>set<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>set</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
 
       <p>Returns <code>#t</code> if each <var>set</var> other than the
         last is a proper subset of the following <var>set</var>, and
@@ -1118,6 +1118,10 @@ SPDX-License-Identifier: MIT
       <p><code>(set&gt;? <var>set<sub>1</sub></var>
         <var>set<sub>2</sub></var> …)</code> → boolean</p>
 
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>set</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
+
       <p>Returns <code>#t</code> if each <var>set</var> other than the
         last is a proper superset of the following <var>set</var>, and
         <code>#f</code> otherwise.</p>
@@ -1140,6 +1144,10 @@ SPDX-License-Identifier: MIT
       <p><code>(set&lt;=? <var>set<sub>1</sub></var>
         <var>set<sub>2</sub></var> …)</code> → boolean</p>
 
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>set</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
+
       <p>Returns <code>#t</code> if each <var>set</var> other than the
         last is a subset of the following <var>set</var>, and
         <code>#f</code> otherwise.</p>
@@ -1155,6 +1163,10 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="set-geqp">
       <p><code>(set&gt;=? <var>set<sub>1</sub></var>
         <var>set<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>set</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
 
       <p>Returns <code>#t</code> if each <var>set</var> other than the
         last is a superset of the following <var>set</var>, and
@@ -1937,10 +1949,6 @@ SPDX-License-Identifier: MIT
 
     <h4 id="bag-comparison">Comparison</h4>
 
-    <p>It is an error to pass bags to these predicates that do not
-      share the same comparator (in the sense of
-      <code>eqv?</code>).</p>
-
     <p>None of these predicates produces a total order on
       bags.  In particular, bags do not have the trichotomy property
       under <code>bag=?</code>, <code>bag&lt;?</code>,
@@ -1950,6 +1958,10 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="bag-equalp">
       <p><code>(bag=? <var>bag<sub>1</sub></var>
         <var>bag<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
 
       <p>Returns <code>#t</code> if each <var>bag</var> contains the
         same elements.</p>
@@ -1969,6 +1981,10 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="bag-leqp">
       <p><code>(bag&lt;=? <var>bag<sub>1</sub></var>
         <var>bag<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
 
       <p>Returns true if each <var>bag<sub><var>i</var></sub></var> other than the
         last is included in <var>bag<sub><var>i</var>+1</sub></var>, and
@@ -2004,6 +2020,10 @@ SPDX-License-Identifier: MIT
       <p><code>(bag&lt;? <var>bag<sub>1</sub></var>
         <var>bag<sub>2</sub></var> …)</code> → boolean</p>
 
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
+
       <p>With two arguments, returns <code>#t</code> if
         <var>bag<sub>1</sub></var> is included in
         <var>bag<sub>2</sub></var> (in the sense of <a
@@ -2035,6 +2055,10 @@ SPDX-License-Identifier: MIT
       <p><code>(bag&gt;=? <var>bag<sub>1</sub></var>
         <var>bag<sub>2</sub></var> …)</code> → boolean</p>
 
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
+
       <p>Returns true if each <var>bag<sub><var>i</var></sub></var> other than the
         last includes <var>bag<sub><var>i</var>+1</sub></var>, and
         <code>#f</code> otherwise.
@@ -2063,6 +2087,10 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="bag-greaterp">
       <p><code>(bag&gt;? <var>bag<sub>1</sub></var>
         <var>bag<sub>2</sub></var> …)</code> → boolean</p>
+
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
 
       <p>With two arguments, returns <code>#t</code> if
         <var>bag<sub>1</sub></var> includes
@@ -2101,6 +2129,10 @@ SPDX-License-Identifier: MIT
         <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
         …)</code> → bag</p>
 
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
+
       <p>Returns a newly allocated bag that is the union of the
         <var>bag</var>s.  The number of equal elements in the result
         is equal to the largest number of equal elements in any of
@@ -2124,6 +2156,10 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-intersection
         <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
         …)</code> → bag</p>
+
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
 
       <p>Returns a newly allocated bag that is the intersection of the
         <var>bag</var>s.  The number of equal elements in the result
@@ -2149,6 +2185,10 @@ SPDX-License-Identifier: MIT
         <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
         …)</code> → bag</p>
 
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
+
       <p>Returns a newly allocated bag that is the asymmetric
         difference of the <var>bag</var>s.  The number of equal
         elements in the result is equal to the number of equal elements
@@ -2173,6 +2213,10 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-xor
         <var>bag<sub>1</sub></var> <var>bag<sub>2</sub></var>
         …)</code> → bag</p>
+
+      <p><span class="par-head">Argument restrictions:</span>
+        The <var>bag</var>s must use the same comparator (in the sense
+        of <code>eqv?</code>).</p>      
 
       <p>Returns a newly allocated bag that is the symmetric
         difference of the <var>bag</var>s.  The number of equal
