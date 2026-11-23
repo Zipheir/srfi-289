@@ -1531,15 +1531,15 @@ SPDX-License-Identifier: MIT
         </li>
       </ol>
 
-      <!-- TODO: error to invoke *terminate* in non-tail context. -->
-
       <p>It is an error for the number of seeds to vary between steps
         of the unfolding process.  If <var>proc</var> mutates values
         returned by earlier invocations of <var>proc</var>, then
         <code>bag-accumulate</code> returns a bag whose contents are
         unspecified.  If multiple returns occur from
         <code>bag-accumulate</code>, the values returned by earlier
-        returns are not mutated.</p>
+        returns are not mutated.
+        If the <var>terminate</var> procedure is invoked in a
+        non-tail context, it is an error.</p>
 
       <h5>Example</h5>
 
