@@ -84,14 +84,6 @@
        )
 
      (test-group "Accessors"
-       (test-group "set-member"
-         (test-assert "returned element is eqv? to original"
-           (let ((e1 (string #\a)))
-             (set-member (set strc e1) "a" 'z)))
-         (test-eqv "element absent"
-           'z
-           (set-member (set intc 2 4 5 6) 1 'z)))
-
        ;; This might possibly fail on Gauche, which doesn't always
        ;; preserve hashmap comparator equivalence.
        (test-eqv
@@ -147,37 +139,6 @@
            (set=? (set intc 1 3 4 5 6)
                   (set-adjoin-all! (set intc 1 3 5) '(3 4 5 6)))))
 
-       ;; These certainly show the weirdness of set-replace.  set-member
-       ;; is the only other procedure that cares whether elements are
-       ;; eqv? as well as equal (in the sense of the set's comparator).
-       (test-group "set-replace"
-         (test-assert "new element is eqv? to argument"
-           (let ((e1 (string #\a)) (e2 (string #\a)))
-             (eqv? e2
-                   (set-member (set-replace (set strc e1) e2) "a" #f))))
-         (test-assert
-           "element absent"
-           (let ((es (list (string #\a))))
-             (s1:lset= eqv?
-                       es
-                       (set->list
-                        (set-replace (list->set strc es) "b"))))))
-
-       (test-group "set-replace!"
-         (test-assert
-           "new element is eqv? to argument"
-           (let ((e1 (string #\a)) (e2 (string #\a)))
-             (eqv? e2
-                   (set-member (set-replace! (set strc e1) e2)
-                               "a"
-                               #f))))
-         (test-assert "element absent"
-           (let ((es (list (string #\a))))
-             (s1:lset= eqv?
-                       es
-                       (set->list
-                        (set-replace! (list->set strc es) "b"))))))
-
        (test-group "set-delete"
          (test-assert "elements present"
            (set=? (set intc 1 3 5)
@@ -221,48 +182,6 @@
          (test-assert "some elements present, some absent"
            (set=? (set intc 1 2 3)
                   (set-delete-all! (set intc 1 2 3 4) '(4 5)))))
-
-       (test-group "set-search!"
-         (test-assert "insert"
-           (let-values (((s x)
-                         (set-search! (set intc 1 2 3)
-                                      4
-                                      (lambda (insert _ig)
-                                        (insert 'z))
-                                      (lambda (_el update _rem)
-                                        (update 4 #t)))))
-             (and (set=? s (set intc 1 2 3 4))
-                  (eqv? x 'z))))
-         (test-assert "ignore"
-           (let-values (((s x)
-                         (set-search! (set intc 1 2 3)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore 'z))
-                                      (lambda (_el _up remove)
-                                        (remove #t)))))
-             (and (set=? s (set intc 1 2 3))
-                  (eqv? x 'z))))
-         (test-assert "replace"
-           (let-values (((s x)
-                         (set-search! (set intc 1 2 3 4)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore #t))
-                                      (lambda (_el update _rem)
-                                        (update 5 'z)))))
-             (and (set=? s (set intc 1 2 3 5))
-                  (eqv? x 'z))))
-         (test-assert "remove"
-           (let-values (((s x)
-                         (set-search! (set intc 1 2 3 4)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore #t))
-                                      (lambda (_el _up remove)
-                                        (remove 'z)))))
-             (and (set=? s (set intc 1 2 3))
-                  (eqv? x 'z)))))
 
        (test-assert "set-pop"
          (let*-values (((els) (list 1 2 3 4))
@@ -456,15 +375,7 @@
            (set-empty? (list->set intc '())))
          (test-assert "list->set: nonempty"
            (set=? (set intc 1 2 3 4)
-                  (list->set intc '(1 2 3 4)))))
-
-       (test-group "set->list!"
-         (test-assert "no elements added"
-           (set=? (set intc 1 2 3 4)
-                  (list->set! (set intc 1 2 3 4) '())))
-         (test-assert "elements added"
-           (set=? (set intc 1 2 3 4 5 6)
-                  (list->set! (set intc 1 2 3 4) '(5 6))))))
+                  (list->set intc '(1 2 3 4))))))
 
      (test-group "Comparison"
        (test-group "set=?"
@@ -748,13 +659,22 @@
                   (set-xor! (set intc 1 4 5 7) (set intc 1 4 6)))))
        )
 
-     (test-group "set-comparator"
-       (test-assert "is a SRFI 128 comparator"
-         (s128:comparator? set-comparator))
-       (test-assert "type-test predicate is true on sets"
-         ((s128:comparator-type-test-predicate set-comparator)
-          (set intc 1 2 3)))
-       (test-assert "is hashable"
-         (s128:comparator-hashable? set-comparator)))
+     (test-group "make-set-comparator"
+       (test-assert "returns a SRFI 128 comparator"
+         (s128:comparator? (make-set-comparator intc)))
+
+       (test-assert
+         "type test is true on sets with matching comparators"
+         (let ((comp (make-set-comparator intc)))
+           ((s128:comparator-type-test-predicate comp)
+            (set intc 1 2 3))))
+
+       (test-assert "equality predicate (equal sets)"
+         (let ((comp (make-set-comparator intc)))
+           (s128:=? comp (set intc 1 2 3) (set intc 3 1 2))))
+
+       (test-assert "equality predicate (unequal sets)"
+         (let ((comp (make-set-comparator intc)))
+           (not (s128:=? comp (set intc 1 2 3) (set intc 4 1 2))))))
 
      (test-end))))

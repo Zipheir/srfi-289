@@ -99,17 +99,6 @@
            (not (bag-disjoint? (bag intc 1 1 2) (bag intc 2 3 3))))))
 
      (test-group "Accessors"
-       ;; Don't bother testing that we get the same (in the sense of
-       ;; eqv?) element out of the bag, since it's not guaranteed
-       ;; with this type.
-       (test-group "bag-member"
-         (test-eqv "element present"
-           2
-           (bag-member (bag intc 2 5 5 6) 2 'z))
-         (test-eqv "element absent"
-           'z
-           (bag-member (bag intc 2 5 5 6) 1 'z)))
-
        ;; This might possibly fail on Gauche, which doesn't always
        ;; preserve hashmap comparator equivalence.
        (test-eqv "result is eqv? to bag's comparator"
@@ -205,48 +194,6 @@
          (test-assert "some elements present, some absent"
            (bag=? (bag intc 1 2 3 4 4)
                   (bag-delete-all! (bag intc 1 2 3 4 4 4) '(4 5)))))
-
-       (test-group "bag-search!"
-         (test-assert "insert"
-           (let-values (((s x)
-                         (bag-search! (bag intc 1 2 3 3)
-                                      4
-                                      (lambda (insert _ig)
-                                        (insert 'z))
-                                      (lambda (_el update _rem)
-                                        (update 4 #t)))))
-             (and (bag=? s (bag intc 1 2 3 3 4))
-                  (eqv? x 'z))))
-         (test-assert "ignore"
-           (let-values (((s x)
-                         (bag-search! (bag intc 1 2 3 3)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore 'z))
-                                      (lambda (_el _up remove)
-                                        (remove #t)))))
-             (and (bag=? s (bag intc 1 2 3 3))
-                  (eqv? x 'z))))
-         (test-assert "replace"
-           (let-values (((s x)
-                         (bag-search! (bag intc 1 2 3 3 4)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore #t))
-                                      (lambda (_el update _rem)
-                                        (update 5 'z)))))
-             (and (bag=? s (bag intc 1 2 3 3 5))
-                  (eqv? x 'z))))
-         (test-assert "remove"
-           (let-values (((s x)
-                         (bag-search! (bag intc 1 2 3 3 4)
-                                      4
-                                      (lambda (_ins ignore)
-                                        (ignore #t))
-                                      (lambda (_el _up remove)
-                                        (remove 'z)))))
-             (and (bag=? s (bag intc 1 2 3 3))
-                  (eqv? x 'z)))))
 
        (test-assert "bag-pop"
          (let*-values (((els) '(1 1 2 3 3 4))
@@ -444,15 +391,7 @@
            (bag-empty? (list->bag intc '())))
          (test-assert "nonempty"
            (bag=? (bag intc 1 2 3 4)
-                  (list->bag intc '(1 2 3 4)))))
-
-       (test-group "bag->list!"
-         (test-assert "no elements added"
-           (bag=? (bag intc 1 2 3 4)
-                  (list->bag! (bag intc 1 2 3 4) '())))
-         (test-assert "elements added"
-           (bag=? (bag intc 1 2 3 4 5 6)
-                  (list->bag! (bag intc 1 2 3 4) '(5 6))))))
+                  (list->bag intc '(1 2 3 4))))))
 
      (test-group "Comparison"
        (test-group "bag=?"
@@ -784,12 +723,23 @@
                   (bag-xor! (bag intc 1 4 4 4 5 7)
                             (bag intc 1 4 5 5 6))))))
 
-     (test-group "bag-comparator"
-       (test-assert "is a SRFI 128 comparator"
-         (s128:comparator? bag-comparator))
-       (test-assert "type-test predicate is true on bags"
-         ((s128:comparator-type-test-predicate bag-comparator)
-          (bag intc 1 2 3))))
+     (test-group "make-bag-comparator"
+       (test-assert "returns a SRFI 128 comparator"
+         (s128:comparator? (make-bag-comparator intc)))
+
+       (test-assert
+         "type test is true on bags with matching comparators"
+         (let ((comp (make-bag-comparator intc)))
+           ((s128:comparator-type-test-predicate comp)
+            (bag intc 1 2 3))))
+
+       (test-assert "equality predicate (equal bags)"
+         (let ((comp (make-bag-comparator intc)))
+           (s128:=? comp (bag intc 1 2 2 3) (bag intc 3 1 2 2))))
+
+       (test-assert "equality predicate (unequal bags)"
+         (let ((comp (make-bag-comparator intc)))
+           (not (s128:=? comp (bag intc 1 2 3) (bag intc 3 3 1 2))))))
 
      (test-group "Bag sum & product"
        (test-group "bag-sum"
@@ -977,20 +927,6 @@
          (test-assert "nonempty set"
            (bag=? (bag intc 1 2 3 4)
                   (set->bag (set intc 3 2 1 4)))))
-
-       (test-group "set->bag!"
-         (test-assert "add empty set"
-           (bag-empty? (set->bag! (bag intc) (set intc))))
-         (test-eqv "bag comparator is eqv? to original"
-           intc
-           (bag-element-comparator
-            (set->bag! (bag intc) (set intc))))
-         (test-assert "add nonempty set to empty bag"
-           (bag=? (bag intc 1 2 3 4)
-                  (set->bag! (bag intc) (set intc 3 2 1 4))))
-         (test-assert "add nonempty set to empty bag"
-           (bag=? (bag intc 1 2 3 4 5 5 6)
-                  (set->bag! (bag intc 5 5 6) (set intc 3 2 1 4)))))
 
        (test-group "bag->alist"
          (test-eqv "empty bag"

@@ -21,7 +21,7 @@
                       els
                       comparator)))
 
-   (define (%set-unfold comparator stop? mapper successor seed)
+   (define (set-unfold stop? mapper successor seed comparator)
      (unless (comparator? comparator)
        (error "Not a comparator" comparator))
      (%set
@@ -33,22 +33,15 @@
                       seed
                       comparator)))
 
-   (define (set-unfold a1 a2 a3 a4 a5)
-     (if (comparator? a1)
-         (%set-unfold a1 a2 a3 a4 a5)
-         (%set-unfold a5 a1 a2 a3 a4)))
-
    (define (set-contains? set el)
      (hashmap-contains? (%m set) el))
+
    (define (set-empty? set)
      (hashmap-empty? (%m set)))
+
    (define (set-disjoint? s1 s2)
      (hashmap-disjoint? (%m s1) (%m s2)))
 
-   (define (set-member set element default)
-     (hashmap-ref/default (%m set)
-                          element
-                          default))
    (define (set-element-comparator set)
      (hashmap-key-comparator (%m set)))
 
@@ -76,12 +69,6 @@
            (loop (hashmap-adjoin m (car els) (car els))
                  (cdr els)))))
 
-   (define (set-replace s el)
-     (%set (hashmap-replace (%m s) el el)))
-   (define (set-replace! s el)
-     (set-m! s (hashmap-replace! (%m s) el el))
-     s)
-
    (define (set-delete-all s elements)
      (%set (hashmap-delete-all (%m s) elements)))
 
@@ -91,27 +78,9 @@
 
    (define (set-delete s . els)
      (set-delete-all s els))
+
    (define (set-delete! s . els)
      (set-delete-all! s els))
-
-   ;; We should use hashmap-search! here, but Gauche's version of that
-   ;; procedure is currently buggy.  This is a slightly inefficient
-   ;; emulation.
-   (define (set-search! set el failure success)
-     (if (set-contains? set el)
-         ;; Yet another awkward detail of set-search!: if you find
-         ;; el, you've got change the set, even if it's just to
-         ;; re-add the same element.
-         (let ((set-no-el (set-delete! set el)))
-           (success el
-                    (lambda (new x) ; update
-                      (values (set-adjoin! set-no-el new) x))
-                    (lambda (x) ; remove
-                      (values set-no-el x))))
-         (failure (lambda (x) ; insert
-                    (values (set-adjoin! set el) x))
-                  (lambda (x) ; ignore
-                    (values set x)))))
 
    (define (set-pop set)
      (when (set-empty? set)
@@ -196,12 +165,12 @@
 
    (define (set-copy set)
      (%set (hashmap-copy (%m set))))
+
    (define (set->list set)
      (hashmap-keys (%m set)))
+
    (define (list->set comparator lst)
-     (%set-unfold comparator null? car cdr lst))
-   (define (list->set! set lst)
-     (set-adjoin-all! set lst))
+     (set-unfold null? car cdr lst comparator))
 
    (define anything-comparator
      (make-comparator (lambda (x) #t)
@@ -209,27 +178,20 @@
                       #f
                       #f))
 
-   (define set=? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap=?))
+   (define set=?
+     (variadic-comparison anything-comparator %m hashmap=?))
 
-   (define set<? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap<?))
-   (define set>? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap>?))
-   (define set>=? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap>=?))
-   (define set<=? (variadic-comparison
-                   anything-comparator
-                   %m
-                   hashmap<=?))
+   (define set<?
+     (variadic-comparison anything-comparator %m hashmap<?))
+
+   (define set>?
+     (variadic-comparison anything-comparator %m hashmap>?))
+
+   (define set>=?
+     (variadic-comparison anything-comparator %m hashmap>=?))
+
+   (define set<=?
+     (variadic-comparison anything-comparator %m hashmap<=?))
 
    (define (variadic-set-operation op)
      (lambda (s1 . rest)
@@ -240,8 +202,10 @@
                (loop (op acc s) (cdr rest)))))))
 
    (define set-union (variadic-set-operation hashmap-union))
+
    (define set-intersection
      (variadic-set-operation hashmap-intersection))
+
    (define set-difference (variadic-set-operation hashmap-difference))
 
    (define (set-xor s1 s2)
@@ -255,27 +219,32 @@
        (let loop ((acc (%m s1)) (rest rest))
          (if (null? rest)
              (begin
-               (set-m! s1 acc)
-               s1)
+              (set-m! s1 acc)
+              s1)
              (let ((s (%m (car rest))))
                (loop (op! acc s) (cdr rest)))))))
 
    (define set-union! (linear-variadic-set-operation hashmap-union!))
+
    (define set-intersection!
      (linear-variadic-set-operation hashmap-intersection!))
+
    (define set-difference!
      (linear-variadic-set-operation hashmap-difference!))
 
-   (define set-comparator
+   (define (make-set-comparator elt-comp)
      (make-comparator
-      set?
+      (lambda (x)
+        (and (set? x)
+             (eqv? (set-element-comparator x) elt-comp)))
       set=?
       #f
-      (lambda (x)
-        (let ((hash (comparator-hash-function
-              (set-element-comparator x))))
-          (set-fold (lambda (el previous-hash)
-                      (+ (bitwise-xor (hash el) previous-hash) 1))
-                    0
-                    x)))))
+      (and (comparator-hashable? elt-comp)
+           (lambda (x)
+             (let ((hash (comparator-hash-function
+                          (set-element-comparator x))))
+               (set-fold (lambda (el previous-hash)
+                           (+ (bitwise-xor (hash el) previous-hash) 1))
+                         0
+                         x))))))
    ))
