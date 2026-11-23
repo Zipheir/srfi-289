@@ -539,6 +539,7 @@
                                    elt-comp)))
                       bag=?
                       #f
+                      (and (comparator-hashable? elt-comp)
                       (lambda (x)
                         (let ((hash (comparator-hash-function
                                      (bag-element-comparator x))))
@@ -548,7 +549,7 @@
                                   (hash nil (+ (bitwise-xor el hash) 1)))
                                  ((= i count) hash)))
                            0
-                           x)))))
+                           x))))))
 
    (define (bag->set bag)
      (%set (hashmap-map (lambda (el ignored)

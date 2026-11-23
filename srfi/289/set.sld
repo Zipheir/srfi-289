@@ -239,11 +239,12 @@
              (eqv? (set-element-comparator x) elt-comp)))
       set=?
       #f
+      (and (comparator-hashable? elt-comp)
       (lambda (x)
         (let ((hash (comparator-hash-function
                      (set-element-comparator x))))
           (set-fold (lambda (el previous-hash)
                       (+ (bitwise-xor (hash el) previous-hash) 1))
                     0
-                    x)))))
+                    x))))))
    ))
