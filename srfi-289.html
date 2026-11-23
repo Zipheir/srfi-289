@@ -879,7 +879,9 @@ SPDX-License-Identifier: MIT
       <p><code>(set-find <var>pred</var> <var>set</var>
         <var>failure</var>)</code> → obj …</p>
 
-      <!-- TODO: arg restrict -->
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Failure</var> must be a procedure accepting zero
+        arguments.</p>
 
       <p>Returns an arbitrarily-chosen element of <var>set</var> that
         satisfies <var>pred</var>.  If no such element exists, then
@@ -1749,7 +1751,9 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-pop <var>bag</var> [<var>failure</var>])</code>
         → obj …</p>
 
-      <!-- TODO: arg restrict -->
+      <p><span class="par-head">Argument restrictions:</span>
+        If <var>failure</var> is provided, it must be a procedure
+        accepting zero arguments.</p>
 
       <p>Chooses an arbitrary element <var>x</var> of <var>bag</var>
         and returns two values: a newly allocated bag with the same
@@ -1797,7 +1801,9 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-find <var>pred</var> <var>bag</var>
         <var>failure</var>)</code> → obj …</p>
 
-      <!-- TODO: arg restrict -->
+      <p><span class="par-head">Argument restrictions:</span>
+        <var>Failure</var> must be a procedure accepting zero
+        arguments.</p>
 
       <p>Returns an arbitrarily-chosen element of <var>bag</var> that
         satisfies <var>pred</var>.  If no such element exists, then
