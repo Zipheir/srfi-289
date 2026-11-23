@@ -213,8 +213,7 @@ SPDX-License-Identifier: MIT
         <p>These accessors are coherent but fairly useless.  Unless you
           are using multiple notions of equality (which is itself
           deprecated usage), they simply return one of their arguments.
-          Which depends on whether the collection argument contains the
-          given element.</p>
+        </p>
       </dd>
 
       <dt><code>set-replace</code></dt>
@@ -311,11 +310,10 @@ SPDX-License-Identifier: MIT
 
     <p><dfn>Sets</dfn> and <dfn>bags</dfn> form new types as if they
       were created by <code>define-record-type</code> (R<sup>7</sup>RS
-      §5.5).  Values of both types use a specific
-      <a href="#ref-srfi-128">SRFI 128</a> <dfn>element comparator</dfn>
-      and
+      §5.5).  Values of both types have an <dfn>element comparator</dfn>
+      (a <a href="#ref-srfi-128">SRFI 128</a> comparator) and
       contain <dfn>elements</dfn> satisfying that comparator’s
-      type-test predicate.  Sets never contains duplicate elements (in
+      type test predicate.  Sets never contains duplicate elements (in
       the sense of their element comparator’s equality predicate).
       Bags, on
       the other hand, may contain duplicates, but they are not required
@@ -359,12 +357,15 @@ SPDX-License-Identifier: MIT
       <p><em>This section is informational.</em></p>
 
       <p>This definition of comparator equality follows that of
-        <a href="#ref-srfi-146">SRFI 146</a>.  SRFI 113 explicitly
+        <a href="#ref-srfi-146">SRFI 146</a>.  SRFI 113, in contrast,
+        explicitly
         uses <code>eqv?</code> to compare comparators.</p>
     </div>
 
 
     <h3 id="notation">Notation</h3>
+
+    <!-- TODO: Explain proc. notation. -->
 
     <p>The argument-naming conventions of this document are consistent
       with those of the R<sup>7</sup>RS.  The following naming
@@ -376,15 +377,17 @@ SPDX-License-Identifier: MIT
         …</dt>
       <dd>bag (satisfies <code><a href="#bagp">bag?</a></code>)</dd>
 
-      <dt><var>comparator</var>, <var>element-comparator</var></dt>
+      <dt><var>comparator</var></dt>
+      <dt><var>element-comparator</var></dt>
       <dd>SRFI 128 comparator object</dd>
 
       <dt><var>element</var></dt>
-      <dd>element of a set or bag (satisfies a relevant type-test
+      <dd>element of a set or bag (satisfies a relevant type test
         predicate indicated by context)</dd>
 
       <dt><var>pred</var></dt>
-      <dd>predicate procedure (see R<sup>7</sup>RS §1.3.5)</dd>
+      <dd>side-effect-free predicate procedure (see
+        R<sup>7</sup>RS §1.3.5)</dd>
 
       <dt><var>set</var></dt>
       <dt><var>set<sub>1</sub></var>, …, <var>set<sub>j</sub></var>,
@@ -401,18 +404,18 @@ SPDX-License-Identifier: MIT
 
     <p>Like several other SRFIs, this SRFI defines
       <dfn>linear-update</dfn> procedures, all of whose names end in
-      ‘!’.  These procedures are allowed, but not required, to
-      side-effect one of their arguments in order to construct their
+      <q>!</q>.  These procedures are allowed, but not required, to
+      side-effect one of their arguments (which one depends on the
+      procedure, but is always specified) in order to construct their
       results.  (Unlike similarly-named procedures in the Scheme
       Reports, these forms return meaningful values.)  An implementation
       may implement linear-update procedures as side-effecting or
       side-effect-free procedures, depending on what makes the most
       sense for the underlying representation.</p>
 
-    <p>A linear-update procedure is permitted to mutate one of its
-      arguments, and it is an error to reference that value after the
-      procedure has been invoked on it.  For example, the following is
-      an error:</p>
+    <p>It is an error to reference the possibly-mutated argument of a
+      linear-update procedure after that procedure has been invoked.
+      For example, the following is an error:</p>
 
     <pre class="example"><code>(let* ((s (set (make-equal-comparator) 1 2 3))
        (s* (set-adjoin! s 4)))
@@ -423,8 +426,8 @@ SPDX-License-Identifier: MIT
     <pre class="example"><code>(let ((s (set (make-equal-comparator) 1 2 3)))
   (set-&gt;list (set-adjoin! s 4)))</code></pre>
 
-    <p>In other words, a user of a linear-update procedures should
-      write in a functional style, but should additionally be sure
+    <p>In other words, the user of a linear-update procedures should
+      write in a functional style, but should additionally make sure
       that there are no “live” references to the value that the
       procedure is allowed to mutate when the procedure is called.</p>
 
@@ -437,8 +440,8 @@ SPDX-License-Identifier: MIT
       for SRFI 113, for example, incorrectly uses linear-update
       forms like
       <a href="#set-adjoin-bang"><code>set-adjoin!</code></a> as
-      simple mutators.  Despite this, they have been retained in the
-      interest of backward compatibility with SRFI 113 and alignment
+      simple mutators.  Despite this, they have been retained in order
+      to align
       with the R<sup>7</sup>RS Large project’s decision to preserve linear-update
       forms in their specifications.</p>
 
@@ -489,7 +492,7 @@ SPDX-License-Identifier: MIT
 
       <p><span class="par-head">Argument
         restrictions:</span> Each <var>element</var> must satisfy
-        <var>comparator</var>’s type-test predicate.</p>
+        <var>comparator</var>’s type test predicate.</p>
 
       <p>Returns a newly allocated set with <var>comparator</var>
         as its element comparator
@@ -511,11 +514,13 @@ SPDX-License-Identifier: MIT
 
       <p><span class="par-head">Argument restrictions:</span>
         <var>seed</var> may be any object.  <var>stop?</var> is a
-        predicate taking a single value of <var>seed</var>’s type.
-        <var>mapper</var> and <var>successor</var> are procedures taking
-        a single value of <var>seed</var>’s type and returning a single
+        predicate accepting a single argument.
+        <var>mapper</var> and <var>successor</var> are procedures
+        accepting
+        a single argument and returning a
+        single
         value.  <var>mapper</var> must return a value
-        that satisfies <var>comparator</var>’s type-test
+        that satisfies <var>comparator</var>’s type test
         predicate.</p>
 
       <p>Returns a newly allocated set with <var>comparator</var> as
@@ -543,7 +548,7 @@ SPDX-License-Identifier: MIT
         </li>
       </ol>
 
-      <p>If <var>stop?</var>, <var>mapper</var>, or <var>successor</var>
+      <p>If <var>mapper</var> or <var>successor</var>
         mutate the values returned by <var>mapper</var>, then
         <code>set-unfold</code> returns a set whose contents are
         unspecified.  If multiple returns occur from
@@ -562,6 +567,8 @@ SPDX-License-Identifier: MIT
       <div class="note">
         <h5>Note</h5>
 
+        <p><em>This section is informational.</em></p>
+
         <p>The argument order of this procedure differs from that of
           the SRFI 113 form of the same name.</p>
       </div>
@@ -577,7 +584,7 @@ SPDX-License-Identifier: MIT
         accept <var>n</var> arguments, where <var>n</var> is the
         number of <var>seed</var>s, and return <var>n</var> + 1 values,
         the first of which must satisfy <var>comparator</var>’s
-        type-test predicate.</p>
+        type test predicate.</p>
 
       <p>Similar to <a href="#set-unfold"><code>set-unfold</code></a>,
         except that a single procedure controls the unfolding of a new
@@ -732,7 +739,7 @@ SPDX-License-Identifier: MIT
       <p><span class="par-head">Argument restrictions:</span>
         Every element of <var>list</var> must
         satisfy <var>set</var>’s element comparator’s
-        type-test predicate.</p>
+        type test predicate.</p>
 
       <p>Returns a newly allocated set that uses the same
         element comparator as
@@ -790,7 +797,7 @@ SPDX-License-Identifier: MIT
 
       <p><span class="par-head">Argument restrictions:</span>
         Every element of
-        <var>list</var> must satisfy the type-test predicate of
+        <var>list</var> must satisfy the type test predicate of
         <var>set</var>’s element comparator.</p>
 
       <p>Returns a newly allocated set containing all the elements of
@@ -872,6 +879,8 @@ SPDX-License-Identifier: MIT
       <p><code>(set-find <var>pred</var> <var>set</var>
         <var>failure</var>)</code> → obj …</p>
 
+      <!-- TODO: arg restrict -->
+
       <p>Returns an arbitrarily-chosen element of <var>set</var> that
         satisfies <var>pred</var>.  If no such element exists, then
         <var>failure</var> is invoked in tail context on zero
@@ -944,11 +953,13 @@ SPDX-License-Identifier: MIT
       <p><code>(set-map <var>proc</var> <var>comparator</var>
         <var>set</var>)</code> → set</p>
 
+      <!-- TODO: proc should not mutate -->
+
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>set</var>, and
-        returning one value which must satisfy <var>comparator</var>’s
-        type-test predicate.</p>
+        returning one value which satisfies <var>comparator</var>’s
+        type test predicate.</p>
 
       <p>Applies <var>proc</var> to each element of <var>set</var> in
         an arbitrary order and returns a newly allocated set, created
@@ -970,6 +981,8 @@ SPDX-License-Identifier: MIT
       <div class="note">
         <h5>Note</h5>
 
+        <p><em>This section is informational.</em></p>
+
         <p>The argument order of this procedure differs from that of
           the SRFI 113 form of the same name.</p>
       </div>
@@ -978,6 +991,8 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="set-for-each">
       <p><code>(set-for-each <var>proc</var> <var>set</var>)</code> →
         unspecified</p>
+
+      <!-- TODO: proc should not mutate -->
 
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
@@ -998,6 +1013,8 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="set-fold">
       <p><code>(set-fold <var>proc</var> <var>nil</var>
         <var>set</var>)</code> → obj</p>
+
+      <!-- TODO: proc should not mutate -->
 
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
@@ -1121,9 +1138,11 @@ SPDX-License-Identifier: MIT
       <p><code>(list-&gt;set <var>comparator</var>
         <var>list</var>)</code> → set</p>
 
+      <!-- TODO: Define in terms of set-adjoin-all. -->
+
       <p><span class="par-head">Argument restrictions:</span>
         Every element of <var>list</var> must
-        satisfy <var>comparator</var>’s type-test predicate.</p>
+        satisfy <var>comparator</var>’s type test predicate.</p>
 
       <p>Returns a newly allocated set with <var>comparator</var>
         as its element comparator and
@@ -1380,7 +1399,7 @@ SPDX-License-Identifier: MIT
         113</a></cite></p>
 
       <p>In contrast, a comparator constructed by
-        <code>make-set-comparator</code> (and by
+        <code>make-set-comparator</code> (or
         <a href="#make-bag-comparator"><code>make-bag-comparator</code></a>)
         follows the above rule, since its type test predicate is only
         satisfied by sets that use the given element comparator.</p>
@@ -1402,7 +1421,7 @@ SPDX-License-Identifier: MIT
         element comparator
         and containing the given <var>element</var>s.  It is an error if
         any of the <var>element</var> arguments does not satisfy
-        <var>comparator</var>’s type-test predicate.</p>
+        <var>comparator</var>’s type test predicate.</p>
 
       <h5>Examples</h5>
 
@@ -1419,11 +1438,13 @@ SPDX-License-Identifier: MIT
 
       <p><span class="par-head">Argument restrictions:</span>
         <var>seed</var> may be any object.  <var>stop?</var> is a
-        predicate taking a single value of <var>seed</var>’s type.
-        <var>mapper</var> and <var>successor</var> are procedures taking
-        a single value of <var>seed</var>’s type and returning a single
+        predicate accepting a single argument.
+        <var>mapper</var> and <var>successor</var> are procedures
+        accepting
+        a single argument and returning a
+        single
         value.  <var>mapper</var> must return a value
-        that satisfies <var>comparator</var>’s type-test
+        that satisfies <var>comparator</var>’s type test
         predicate.</p>
 
       <p>Returns a newly allocated bag with <var>comparator</var> as
@@ -1451,7 +1472,7 @@ SPDX-License-Identifier: MIT
         </li>
       </ol>
 
-      <p>If <var>stop?</var>, <var>mapper</var>, or <var>successor</var>
+      <p>If <var>mapper</var> or <var>successor</var>
         mutate the values returned by <var>mapper</var>, then
         <code>bag-unfold</code> returns a bag whose contents are
         unspecified.  If multiple returns occur from
@@ -1486,7 +1507,7 @@ SPDX-License-Identifier: MIT
         accept <var>n</var> arguments, where <var>n</var> is the
         number of <var>seed</var>s, and return <var>n</var> + 1 values,
         the first of which must satisfy <var>comparator</var>’s
-        type-test predicate.</p>
+        type test predicate.</p>
 
       <p>Similar to <a href="#bag-unfold"><code>bag-unfold</code></a>,
         except that a single procedure controls the unfolding of a new
@@ -1512,6 +1533,8 @@ SPDX-License-Identifier: MIT
             process continues at step two with the new seeds.</p>
         </li>
       </ol>
+
+      <!-- TODO: error to invoke *terminate* in non-tail context. -->
 
       <p>It is an error for the number of seeds to vary between steps
         of the unfolding process.  If <var>proc</var> mutates values
@@ -1632,7 +1655,7 @@ SPDX-License-Identifier: MIT
 
       <p><span class="par-head">Argument restrictions:</span>
         Every element of <var>list</var> must
-        satisfy <var>bag</var>’s comparator’s type-test predicate.</p>
+        satisfy <var>bag</var>’s comparator’s type test predicate.</p>
 
       <p>Returns a newly allocated bag with the same element comparator
         as <var>bag</var> and that contains all its elements
@@ -1692,7 +1715,7 @@ SPDX-License-Identifier: MIT
 
       <p><span class="par-head">Argument restrictions:</span>
         Every element of <var>list</var>
-        must satisfy the type-test predicate of <var>bag</var>’s
+        must satisfy the type test predicate of <var>bag</var>’s
         element comparator.</p>
 
       <p>Returns a newly allocated bag containing all the elements of
@@ -1726,9 +1749,7 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-pop <var>bag</var> [<var>failure</var>])</code>
         → obj …</p>
 
-      <p>If <var>failure</var> is provided, it
-        must be a procedure accepting zero arguments.  Otherwise, it
-        is an error.</p>
+      <!-- TODO: arg restrict -->
 
       <p>Chooses an arbitrary element <var>x</var> of <var>bag</var>
         and returns two values: a newly allocated bag with the same
@@ -1775,6 +1796,8 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="bag-find">
       <p><code>(bag-find <var>pred</var> <var>bag</var>
         <var>failure</var>)</code> → obj …</p>
+
+      <!-- TODO: arg restrict -->
 
       <p>Returns an arbitrarily-chosen element of <var>bag</var> that
         satisfies <var>pred</var>.  If no such element exists, then
@@ -1848,11 +1871,13 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-map <var>proc</var> <var>comparator</var>
         <var>bag</var>)</code> → bag</p>
 
+      <!-- TODO: proc should not mutate -->
+
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>bag</var>, and
-        returning one value which must satisfy <var>comparator</var>’s
-        type-test predicate.</p>
+        returning one value which satisfies <var>comparator</var>’s
+        type test predicate.</p>
 
       <p>Applies <var>proc</var> to each element of <var>bag</var> in
         an arbitrary order and returns a newly allocated bag, created
@@ -1877,6 +1902,8 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-for-each <var>proc</var> <var>bag</var>)</code> →
         unspecified</p>
 
+      <!-- TODO: proc should not mutate -->
+
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>bag</var>.</p>
@@ -1896,6 +1923,8 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="bag-fold">
       <p><code>(bag-fold <var>proc</var> <var>nil</var>
         <var>bag</var>)</code> → obj</p>
+
+      <!-- TODO: proc should not mutate -->
 
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
@@ -2018,10 +2047,12 @@ SPDX-License-Identifier: MIT
       <p><code>(list-&gt;bag <var>comparator</var>
         <var>list</var>)</code> → bag</p>
 
+      <!-- TODO: Define in terms of bag-adjoin-all. -->
+
       <p><span class="par-head">Argument restrictions:</span>
         Every element of
         <var>list</var> must satisfy <var>comparator</var>’s
-        type-test predicate.</p>
+        type test predicate.</p>
 
       <p>Returns a newly allocated bag with element comparator
         <var>comparator</var> and
@@ -2082,7 +2113,7 @@ SPDX-License-Identifier: MIT
 
       <p><span class="par-head">Argument restrictions:</span>
         Each element of <var>alist</var> must
-        be a pair whose car satisfies <var>comparator</var>’s type-test
+        be a pair whose car satisfies <var>comparator</var>’s type test
         predicate and whose cdr is a non-negative exact integer.  Each
         pair of <var>alist</var> must specify a unique element.</p>
 
@@ -2578,6 +2609,8 @@ SPDX-License-Identifier: MIT
     <div class="proc-spec" id="bag-fold-unique">
       <p><code>(bag-fold-unique <var>proc</var> <var>nil</var>
         <var>bag</var>)</code> → obj</p>
+
+      <!-- TODO: proc should not mutate -->
 
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
