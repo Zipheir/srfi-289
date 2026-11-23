@@ -533,23 +533,23 @@
      bag1)
 
    (define (make-bag-comparator elt-comp)
-     (make-comparator (lambda (x)
-                        (and (bag? x)
-                             (eqv? (bag-element-comparator x)
-                                   elt-comp)))
-                      bag=?
-                      #f
-                      (and (comparator-hashable? elt-comp)
-                      (lambda (x)
-                        (let ((hash (comparator-hash-function
-                                     (bag-element-comparator x))))
-                          (bag-fold-unique
-                           (lambda (el count nil)
-                             (do ((i 0 (+ i 1))
-                                  (hash nil (+ (bitwise-xor el hash) 1)))
-                                 ((= i count) hash)))
-                           0
-                           x))))))
+     (make-comparator
+      (lambda (x)
+        (and (bag? x)
+             (eqv? (bag-element-comparator x) elt-comp)))
+        bag=?
+        #f
+        (and (comparator-hashable? elt-comp)
+             (lambda (x)
+               (let ((hash (comparator-hash-function
+                            (bag-element-comparator x))))
+                 (bag-fold-unique
+                  (lambda (el count nil)
+                    (do ((i 0 (+ i 1))
+                         (hash nil (+ (bitwise-xor el hash) 1)))
+                        ((= i count) hash)))
+                  0
+                  x))))))
 
    (define (bag->set bag)
      (%set (hashmap-map (lambda (el ignored)
