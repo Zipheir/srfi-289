@@ -255,6 +255,19 @@ SPDX-License-Identifier: MIT
           <a href="#bag-adjoin-bang"><code>bag-adjoin!</code></a>,
           if it is ever needed.</p>
       </dd>
+
+      <dt><code>set-comparator</code></dt>
+      <dt><code>bag-comparator</code></dt>
+      <dd>
+        <p>These overly-general comparators have been replaced by the
+          constructors
+          <a href="#make-set-comparator"><code>make-set-comparator</code></a>
+          and
+          <a href="#make-bag-comparator"><code>make-bag-comparator</code></a>,
+          respectively.  See
+          <a href="#make-set-comp-rationale">the rationale</a> for
+          <code>make-set-comparator</code> for further details.</p>
+      </dd>
     </dl>
 
     <h3 id="why-bother">Why bother?</h3>
@@ -1257,7 +1270,7 @@ SPDX-License-Identifier: MIT
 
     <h4 id="set-comparators">Comparators</h4>
 
-    <div class="proc-spec">
+    <div id="make-set-comparator" class="proc-spec">
       <p><code>(make-set-comparator <var>comparator</var>)</code>
         → comparator</p>
 
@@ -1266,6 +1279,28 @@ SPDX-License-Identifier: MIT
         allows sets of sets, etc. to be constructed.
         The returned comparator is required to provide at least
         type-test and equality functions.</p>
+
+      <h5 id="make-set-comp-rationale">Rationale</h5>
+
+      <p>This procedure, which constructs a set comparator parameterized
+        over an element comparator, replaces the monolithic
+        <code>set-comparator</code> of SRFI 113.  The old comparator
+        could cause an erroneous situation even when used with sets that
+        satisfy its type-test predicate:</p>
+
+      <blockquote>
+        <p>It is an error to compare sets or bags with different
+          element comparators.</p>
+      </blockquote>
+
+      <p>This arguably violates the SRFI 128 requirement that a
+        comparator’s type-test predicate be sufficient to determine
+        whether the comparator’s other procedures can be applied safely
+        to a given object.  A comparator constructed by
+        <code>make-set-comparator</code> (and by
+        <a href="#make-bag-comparator"><code>make-bag-comparator</code></a>)
+        respects this property, since its type-test predicate is only
+        satisfied by sets that use the given element comparator.</p>
     </div>
 
 
@@ -2283,7 +2318,7 @@ SPDX-License-Identifier: MIT
 
     <h4 id="bag-comparators">Comparators</h4>
 
-    <div class="proc-spec">
+    <div id="make-bag-comparator" class="proc-spec">
       <p><code>(make-bag-comparator <var>comparator</var>)</code>
         → comparator</p>
 
@@ -2292,6 +2327,13 @@ SPDX-License-Identifier: MIT
         allows sets of bags, etc. to be constructed.
         The returned comparator is required to provide at least
         type-test and equality functions.</p>
+
+      <h5>Rationale</h5>
+
+      <p>This procedure replaces the monolithic
+        <code>bag-comparator</code> of SRFI 113.  See
+        <a href="#make-set-comp-rationale">the rationale</a>
+        for <code>make-set-comparator</code>.</p>
     </div>
 
 
