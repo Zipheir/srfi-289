@@ -1280,6 +1280,19 @@ SPDX-License-Identifier: MIT
         The returned comparator is required to provide at least
         type-test and equality functions.</p>
 
+      <h5>Example</h5>
+
+      <p>This uses a few procedures from SRFI 128:</p>
+
+      <pre class="example"><code>(let ((comp (make-set-comparator real-comparator)))
+  (values
+   ((comparator-type-test-predicate comp) (set real-comparator 1))
+   ((comparator-type-test-predicate comp) (set string-comparator "a"))
+   (=? comp (set real-comparator 1 2 3) (set real-comparator 3 2 1))))
+  ⇒ #t
+    #f
+    #t</code></pre>
+
       <h5 id="make-set-comp-rationale">Rationale</h5>
 
       <p>This procedure, which constructs a set comparator parameterized
@@ -2327,6 +2340,21 @@ SPDX-License-Identifier: MIT
         allows sets of bags, etc. to be constructed.
         The returned comparator is required to provide at least
         type-test and equality functions.</p>
+
+      <h5>Example</h5>
+
+      <p>This uses a few procedures from SRFI 128.</p>
+
+      <pre class="example"><code>(let ((comp (make-bag-comparator real-comparator)))
+  (values
+   ((comparator-type-test-predicate comp) (bag real-comparator 1))
+   ((comparator-type-test-predicate comp) (bag string-comparator "a"))
+   (=? comp
+       (bag real-comparator 1 2 1 3)
+       (set real-comparator 3 2 1 1))))
+  ⇒ #t
+    #f
+    #t</code></pre>
 
       <h5>Rationale</h5>
 
