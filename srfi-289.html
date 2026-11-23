@@ -955,13 +955,12 @@ SPDX-License-Identifier: MIT
       <p><code>(set-map <var>proc</var> <var>comparator</var>
         <var>set</var>)</code> → set</p>
 
-      <!-- TODO: proc should not mutate -->
-
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>set</var>, and
         returning one value which satisfies <var>comparator</var>’s
-        type test predicate.</p>
+        type test predicate.  <var>Proc</var> must not mutate
+        <var>set</var>.</p>
 
       <p>Applies <var>proc</var> to each element of <var>set</var> in
         an arbitrary order and returns a newly allocated set, created
@@ -994,11 +993,10 @@ SPDX-License-Identifier: MIT
       <p><code>(set-for-each <var>proc</var> <var>set</var>)</code> →
         unspecified</p>
 
-      <!-- TODO: proc should not mutate -->
-
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
-        accepting one argument, an element of <var>set</var>.</p>
+        accepting one argument, an element of <var>set</var>.
+        It must not mutate <var>set</var>.</p>
 
       <p>Applies <var>proc</var> to the elements of <var>set</var> in an
         arbitrary order, discarding the returned values.  Returns an
@@ -1016,11 +1014,10 @@ SPDX-License-Identifier: MIT
       <p><code>(set-fold <var>proc</var> <var>nil</var>
         <var>set</var>)</code> → obj</p>
 
-      <!-- TODO: proc should not mutate -->
-
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting two arguments and returning a single value.
+        It must not mutate <var>set</var>.
         <var>Nil</var> may be any Scheme object.</p>
 
       <p>Invokes <var>proc</var> on each member of <var>set</var> in an
@@ -1877,13 +1874,12 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-map <var>proc</var> <var>comparator</var>
         <var>bag</var>)</code> → bag</p>
 
-      <!-- TODO: proc should not mutate -->
-
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>bag</var>, and
         returning one value which satisfies <var>comparator</var>’s
-        type test predicate.</p>
+        type test predicate.
+        <var>Proc</var> must not mutate <var>set</var>.</p>
 
       <p>Applies <var>proc</var> to each element of <var>bag</var> in
         an arbitrary order and returns a newly allocated bag, created
@@ -1910,11 +1906,10 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-for-each <var>proc</var> <var>bag</var>)</code> →
         unspecified</p>
 
-      <!-- TODO: proc should not mutate -->
-
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
-        accepting one argument, an element of <var>bag</var>.</p>
+        accepting one argument, an element of <var>bag</var>.
+        It must not mutate <var>set</var>.</p>
 
       <p>Applies <var>proc</var> to the elements of <var>bag</var> in an
         arbitrary order, discarding the returned values.  Returns an
@@ -1932,11 +1927,10 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-fold <var>proc</var> <var>nil</var>
         <var>bag</var>)</code> → obj</p>
 
-      <!-- TODO: proc should not mutate -->
-
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting two arguments and returning a single value.
+        It must not mutate <var>set</var>.
         <var>Nil</var> may be any Scheme object.</p>
 
       <p>Invokes <var>proc</var> on each member of <var>bag</var> in an
@@ -2619,11 +2613,10 @@ SPDX-License-Identifier: MIT
       <p><code>(bag-fold-unique <var>proc</var> <var>nil</var>
         <var>bag</var>)</code> → obj</p>
 
-      <!-- TODO: proc should not mutate -->
-
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting three arguments and returning a single value.
+        It must not mutate <var>set</var>.
         <var>Nil</var> may be any Scheme object.</p>
 
       <p>Invokes <var>proc</var> on each unique element of
