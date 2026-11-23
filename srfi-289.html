@@ -1271,14 +1271,41 @@ SPDX-License-Identifier: MIT
     <h4 id="set-comparators">Comparators</h4>
 
     <div id="make-set-comparator" class="proc-spec">
-      <p><code>(make-set-comparator <var>comparator</var>)</code>
+      <p><code>(make-set-comparator
+        <var>element-comparator</var>)</code>
         → comparator</p>
 
-      <p>Returns a newly allocated SRFI 128 comparator used to compare
-        sets that use <var>comparator</var>.  This also
-        allows sets of sets, etc. to be constructed.
-        The returned comparator shall provide at least
-        type-test and equality functions.</p>
+      <p>Returns a newly allocated SRFI 128 comparator which may be
+        used to compare sets that use <var>element-comparator</var>.
+        This also allows sets of sets, etc. to be constructed.
+        <var>element-comparator</var> is subject to any
+        <a href="#comparator-restrictions">restrictions</a> imposed
+        on other comparators in this SRFI.</p>
+
+      <ul>
+        <li>
+          <p>The type test predicate of a comparator returned by
+            <code>(make-set-comparator
+              <var>element-comparator</var>)</code> shall be satisfied
+            by any set using a comparator which is the same (in the
+            sense of <code>eqv?</code>) as
+            <var>element-comparator</var>.</p>
+        </li>
+
+        <li>
+          <p>The equality predicate shall be equivalent to
+            <a href="#set-equalp"><code>set=?</code></a>.</p>
+        </li>
+
+        <li>
+          <p>The ordering predicate may or may not be provided.  If it
+            is present, its behavior is implementation-defined.</p>
+        </li>
+
+        <li>
+          <p>The hash function may or may not be provided.</p>
+        </li>
+      </ul>
 
       <h5>Example</h5>
 
@@ -1295,24 +1322,32 @@ SPDX-License-Identifier: MIT
 
       <h5 id="make-set-comp-rationale">Rationale</h5>
 
+      <p><em>This section is informational.</em></p>
+
       <p>This procedure, which constructs a set comparator parameterized
         over an element comparator, replaces the monolithic
-        <code>set-comparator</code> of SRFI 113.  The old comparator
-        could cause an erroneous situation even when used with sets that
-        satisfy its type-test predicate:</p>
+        <code>set-comparator</code> of SRFI 113.
+        A good rule for comparator design is that a comparator should be
+        able to compare (or hash) any objects that satisfy its type test
+        predicate.  Because the old set
+        comparator’s type test predicate is too coarse (i.e. it is true
+        of all sets), using <code>set-comparator</code> to compare sets
+        could cause an erroneous situation, even when those sets satisfy
+        its type test predicate:</p>
 
       <blockquote>
         <p>It is an error to compare sets or bags with different
           element comparators.</p>
       </blockquote>
 
-      <p>This arguably violates the SRFI 128 requirement that a
-        comparator’s type-test predicate be sufficient to determine
-        whether the comparator’s other procedures can be applied safely
-        to a given object.  A comparator constructed by
+      <p class="attribution">
+        — <cite><a href="https://srfi.schemers.org/srfi-113/srfi-113.html#Comparators">SRFI
+        113</a></cite></p>
+
+      <p>In contrast, a comparator constructed by
         <code>make-set-comparator</code> (and by
         <a href="#make-bag-comparator"><code>make-bag-comparator</code></a>)
-        respects this property, since its type-test predicate is only
+        follows the above rule, since its type test predicate is only
         satisfied by sets that use the given element comparator.</p>
     </div>
 
@@ -2332,14 +2367,41 @@ SPDX-License-Identifier: MIT
     <h4 id="bag-comparators">Comparators</h4>
 
     <div id="make-bag-comparator" class="proc-spec">
-      <p><code>(make-bag-comparator <var>comparator</var>)</code>
+      <p><code>(make-bag-comparator
+        <var>element-comparator</var>)</code>
         → comparator</p>
 
-      <p>Returns a newly allocated SRFI 128 comparator used to compare
-        bags using <var>comparator</var>.  This also
-        allows sets of bags, etc. to be constructed.
-        The returned comparator shall provide at least
-        type-test and equality functions.</p>
+      <p>Returns a newly allocated SRFI 128 comparator which may be
+        used to compare bags that use <var>element-comparator</var>.
+        This also allows sets of bags, etc. to be constructed.
+        <var>element-comparator</var> is subject to any
+        <a href="#comparator-restrictions">restrictions</a> imposed
+        on other comparators in this SRFI.</p>
+
+      <ul>
+        <li>
+          <p>The type test predicate of a comparator returned by
+            <code>(make-bag-comparator
+              <var>element-comparator</var>)</code> shall be satisfied
+            by any bag using a comparator which is the same (in the
+            sense of <code>eqv?</code>) as
+            <var>element-comparator</var>.</p>
+        </li>
+
+        <li>
+          <p>The equality predicate shall be equivalent to
+            <a href="#bag-equalp"><code>bag=?</code></a>.</p>
+        </li>
+
+        <li>
+          <p>The ordering predicate may or may not be provided.  If it
+            is present, its behavior is implementation-defined.</p>
+        </li>
+
+        <li>
+          <p>The hash function may or may not be provided.</p>
+        </li>
+      </ul>
 
       <h5>Example</h5>
 
