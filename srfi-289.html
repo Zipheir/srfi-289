@@ -1888,7 +1888,7 @@ SPDX-License-Identifier: MIT
         accepting one argument, an element of <var>bag</var>, and
         returning one value which satisfies <var>comparator</var>’s
         type test predicate.
-        <var>Proc</var> must not mutate <var>set</var>.</p>
+        <var>Proc</var> must not mutate <var>bag</var>.</p>
 
       <p>Applies <var>proc</var> to each element of <var>bag</var> in
         an arbitrary order and returns a newly allocated bag, created
@@ -1918,7 +1918,7 @@ SPDX-License-Identifier: MIT
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting one argument, an element of <var>bag</var>.
-        It must not mutate <var>set</var>.</p>
+        It must not mutate <var>bag</var>.</p>
 
       <p>Applies <var>proc</var> to the elements of <var>bag</var> in an
         arbitrary order, discarding the returned values.  Returns an
@@ -1939,7 +1939,7 @@ SPDX-License-Identifier: MIT
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting two arguments and returning a single value.
-        It must not mutate <var>set</var>.
+        It must not mutate <var>bag</var>.
         <var>Nil</var> may be any Scheme object.</p>
 
       <p>Invokes <var>proc</var> on each member of <var>bag</var> in an
@@ -2625,7 +2625,7 @@ SPDX-License-Identifier: MIT
       <p><span class="par-head">Argument restrictions:</span>
         <var>Proc</var> must be a procedure
         accepting three arguments and returning a single value.
-        It must not mutate <var>set</var>.
+        It must not mutate <var>bag</var>.
         <var>Nil</var> may be any Scheme object.</p>
 
       <p>Invokes <var>proc</var> on each unique element of
