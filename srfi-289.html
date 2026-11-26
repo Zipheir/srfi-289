@@ -243,10 +243,11 @@ SPDX-License-Identifier: MIT
       <dt><code>bag-search!</code></dt>
       <dd>
         <p>These complex procedures can be difficult both to implement
-          and to use.  They also iterate over a collection while
-          simultaneously building a copy of it, which can entail
-          unexpected performance costs when only the iteration is
-          needed.</p>
+          and to use.  Side-effect-based implementations offer no real
+          benefit over the simpler alternative procedures, while
+          functional implementations, which usually iterate
+          over a collection while simultaneously building a copy of it,
+          are inefficient when only the iteration is needed.</p>
       </dd>
 
       <dt><code>list-&gt;set!</code></dt>
