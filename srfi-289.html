@@ -374,6 +374,14 @@ SPDX-License-Identifier: MIT
         uses <code>eqv?</code> to compare comparators.</p>
     </div>
 
+    <p>Many of this SRFI’s procedures return <q>newly allocated</q>
+      sets and bags.  This phrase is used in the sense given it in
+      R<sup>7</sup>RS §3.4, but it may be ignored by implementations
+      that do not allow sets or bags to be mutated.  For example, under
+      such an implementation <code>(set-adjoin <var>A</var>)</code> may
+      — indeed, should — simply return <var>A</var>.  But under an
+      implementation with mutable sets, the returned set and
+      <var>A</var> must be distinct.</p>
 
     <h3 id="notation">Notation</h3>
 
